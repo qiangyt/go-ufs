@@ -1,0 +1,62 @@
+version: '3'
+
+env:
+  VERSION:
+    sh: git describe --tags --always # or: git log -n 1 --format=%h
+  PROJECT_PKG: github.com/fastgh/go-ufs
+
+includes:
+  base: tasks/base.yml
+
+output: prefixed
+
+tasks:
+  init:
+    desc: init env, including install dependent tools
+    cmds:
+      - go install github.com/golang/mock/mockgen@v1.6.0
+      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.49.0
+      - go install github.com/dmarkham/enumer@v1.5.6
+
+  mod:
+    desc: Downloads and tidy Go modules
+    cmds:
+      - go mod download
+      - go mod tidy
+      - go mod vendor
+      - task: patch
+
+  lint:
+    desc: Runs golangci-lint
+    sources:
+      - './**/*.go'
+    cmds:
+      - golangci-lint run
+
+  build:
+    desc: build
+    cmds:
+      - go build -trimpath .
+
+  gen:
+    desc: generates go source files
+    cmds:
+      - task: base:mockgen
+        vars:
+          MOCK_DEST_FILE: mock_file_test.go
+          MOCK_PKG: ufs
+          MOCK_INTERFACE: File
+
+  patch:
+    desc: fix 3rd-party library defects
+    cmds:
+      - task: base:cp
+        vars:
+          SRC: patch/go-universal-network-adapter/httpDownloader.go
+          TARGET: vendor/github.com/goodsru/go-universal-network-adapter/services/downloader/http
+
+  default:
+    desc: run test cases then create coverage report (./coverage.html)
+    cmds:
+      - go test ./... -covermode=count -coverprofile=coverage.out gcflags=all=-l -timeout 3s
+      - go tool cover -html=./coverage.out -o ./coverage.html
