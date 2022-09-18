@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/mitchellh/go-homedir"
@@ -16,10 +17,6 @@ import (
 
 var AppFs = afero.NewOsFs()
 
-func DefaultHome() string {
-	return ExpandHomePath(filepath.Join("~", ".swh"))
-}
-
 func DefaultEtcHosts() string {
 	switch comm.DefaultOSType() {
 	case comm.Windows:
@@ -29,7 +26,7 @@ func DefaultEtcHosts() string {
 	case comm.Darwin:
 		return "/private/etc/hosts"
 	default:
-		panic(swh.ErrUnsupportedOS)
+		panic(errors.New(runtime.GOOS + " is not yet supported"))
 	}
 }
 
