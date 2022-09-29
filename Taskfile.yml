@@ -17,6 +17,7 @@ tasks:
       - go install github.com/golang/mock/mockgen@v1.6.0
       - go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.49.0
       - go install github.com/dmarkham/enumer@v1.5.6
+      - go install mvdan.cc/gofumpt@v0.4.0
 
   mod:
     desc: Downloads and tidy Go modules
@@ -33,9 +34,14 @@ tasks:
     cmds:
       - golangci-lint run
 
+  format:
+    cmds:
+      - gofumpt -l -w .
+
   build:
     desc: build
     cmds:
+      - task: format
       - go build -trimpath .
 
   gen:

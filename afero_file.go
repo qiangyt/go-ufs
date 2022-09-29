@@ -99,6 +99,7 @@ type AferoBlob = *AferoBlobT
 func NewAferoBlob(afs afero.Fs, path string) AferoBlob {
 	return &AferoBlobT{afs: afs, path: path}
 }
+
 func (me AferoBlob) Path() string {
 	return me.path
 }

@@ -12,14 +12,14 @@ import (
 func Test_RemoteFile_happy(t *testing.T) {
 	a := require.New(t)
 
-	//cred := &CredentialsT{}
+	// cred := &CredentialsT{}
 	actual := ufs.NewRemoteFile("https://mirror.sjtu.edu.cn/debian/README.mirrors.txt", nil, 10*time.Second)
 
 	a.Equal("README.mirrors.txt", actual.Name())
 	a.Equal("/debian", actual.Dir())
 	a.Equal("https", actual.Protocol())
 	a.Equal("https://mirror.sjtu.edu.cn/debian/README.mirrors.txt", actual.Url())
-	//a.Equal(cred, actual.Credentials())
+	// a.Equal(cred, actual.Credentials())
 	a.Equal(10*time.Second, actual.Timeout())
 
 	c := actual.Download()

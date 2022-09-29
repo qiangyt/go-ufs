@@ -35,11 +35,15 @@ type File interface {
 	Download() Content
 }
 
-type CredentialsT = models.Credentials
-type Credentials = *CredentialsT
+type (
+	CredentialsT = models.Credentials
+	Credentials  = *CredentialsT
+)
 
-type ContentT = models.RemoteFileContent
-type Content = *ContentT
+type (
+	ContentT = models.RemoteFileContent
+	Content  = *ContentT
+)
 
 func NewFile(afs afero.Fs, url string, credentials Credentials, timeout time.Duration) File {
 	if IsRemote(url) {

@@ -169,7 +169,7 @@ func WriteIfNotFound(fs afero.Fs, path string, content []byte) bool {
 
 // Write ...
 func Write(fs afero.Fs, path string, content []byte) {
-	if err := afero.WriteFile(fs, path, content, 0640); err != nil {
+	if err := afero.WriteFile(fs, path, content, 0o640); err != nil {
 		panic(errors.Wrapf(err, "failed to write file: %s", path))
 	}
 }
