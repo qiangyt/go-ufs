@@ -20,7 +20,15 @@ type AferoFileT struct {
 
 type AferoFile = *AferoFileT
 
-func NewAferoFile(afs afero.Fs, apath string, credentials Credentials, timeout time.Duration) AferoFile {
+func NewAferoFileP(afs afero.Fs, apath string, credentials Credentials, timeout time.Duration) AferoFile {
+	r, err := NewAferoFile(afs, apath, credentials, timeout)
+	if err != nil {
+		panic(err)
+	}
+	return r
+}
+
+func NewAferoFile(afs afero.Fs, apath string, credentials Credentials, timeout time.Duration) (AferoFile, error) {
 	var rawPath, rawUrl string
 	if IsFileProtocol(apath) {
 		rawPath = apath[len(FILE):]
@@ -32,7 +40,7 @@ func NewAferoFile(afs afero.Fs, apath string, credentials Credentials, timeout t
 
 	_url, err := url.Parse(rawUrl)
 	if err != nil {
-		panic(errors.Wrapf(err, "failed to parse url: %s", rawUrl))
+		return nil, errors.Wrapf(err, "failed to parse url: %s", rawUrl)
 	}
 
 	return &AferoFileT{
@@ -42,7 +50,7 @@ func NewAferoFile(afs afero.Fs, apath string, credentials Credentials, timeout t
 		rawPath:     rawPath,
 		credentials: credentials,
 		timeout:     timeout,
-	}
+	}, nil
 }
 
 func (me AferoFile) Fs() afero.Fs {
@@ -80,12 +88,16 @@ func (me AferoFile) Timeout() time.Duration {
 	return me.timeout
 }
 
-func (me AferoFile) Download() Content {
+func (me AferoFile) DownloadP() Content {
 	return &ContentT{
 		Name: me.Name(),
 		Path: me.rawPath,
 		Blob: NewAferoBlob(me.afs, me.rawPath),
 	}
+}
+
+func (me AferoFile) Download() (Content, error) {
+	return me.DownloadP(), nil
 }
 
 type AferoBlobT struct {

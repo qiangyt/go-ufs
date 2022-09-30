@@ -14,13 +14,13 @@ func Test_CopyFile_happy(t *testing.T) {
 	a := require.New(t)
 	fs := afero.NewMemMapFs()
 
-	ufs.Mkdir(fs, "/Test_CopyFile_happy/c1")
-	ufs.WriteText(fs, "/Test_CopyFile_happy/c1/src.txt", "hello")
+	ufs.MkdirP(fs, "/Test_CopyFile_happy/c1")
+	ufs.WriteTextP(fs, "/Test_CopyFile_happy/c1/src.txt", "hello")
 
-	ufs.Mkdir(fs, "/Test_CopyFile_happy/c2")
+	ufs.MkdirP(fs, "/Test_CopyFile_happy/c2")
 	ufs.CopyFile(fs, "/Test_CopyFile_happy/c1/src.txt", "/Test_CopyFile_happy/c2/dest.txt")
 
-	actual := ufs.ReadText(fs, "/Test_CopyFile_happy/c2/dest.txt")
+	actual := ufs.ReadTextP(fs, "/Test_CopyFile_happy/c2/dest.txt")
 	a.Equal("hello", actual)
 }
 
@@ -28,11 +28,11 @@ func Test_CopyFile_SourceFileNotFound(t *testing.T) {
 	a := require.New(t)
 	fs := afero.NewMemMapFs()
 
-	ufs.Mkdir(fs, "/Test_CopyFile_SourceFileNotFound/c1")
-	ufs.Mkdir(fs, "/Test_CopyFile_SourceFileNotFound/c2")
+	ufs.MkdirP(fs, "/Test_CopyFile_SourceFileNotFound/c1")
+	ufs.MkdirP(fs, "/Test_CopyFile_SourceFileNotFound/c2")
 
 	a.Panicsf(func() {
-		ufs.CopyFile(fs, "/Test_CopyFile_SourceFileNotFound/c1/src.txt", "/Test_CopyFile_SourceFileNotFound/c2/dest.txt")
+		ufs.CopyFileP(fs, "/Test_CopyFile_SourceFileNotFound/c1/src.txt", "/Test_CopyFile_SourceFileNotFound/c2/dest.txt")
 	}, "file not exists: /Test_CopyFile_SourceFileNotFound/c1/src.txt")
 }
 
@@ -40,13 +40,13 @@ func Test_Rename_happy(t *testing.T) {
 	a := require.New(t)
 	fs := afero.NewMemMapFs()
 
-	ufs.Mkdir(fs, "/Test_Rename_happy/c1")
-	ufs.WriteText(fs, "/Test_Rename_happy/c1/src.txt", "hello")
+	ufs.MkdirP(fs, "/Test_Rename_happy/c1")
+	ufs.WriteTextP(fs, "/Test_Rename_happy/c1/src.txt", "hello")
 
-	ufs.Mkdir(fs, "/Test_Rename_happy/c2")
-	ufs.Rename(fs, "/Test_Rename_happy/c1/src.txt", "/Test_Rename_happy/c2/dest.txt")
+	ufs.MkdirP(fs, "/Test_Rename_happy/c2")
+	ufs.RenameP(fs, "/Test_Rename_happy/c1/src.txt", "/Test_Rename_happy/c2/dest.txt")
 
-	actual := ufs.ReadText(fs, "/Test_Rename_happy/c2/dest.txt")
+	actual := ufs.ReadTextP(fs, "/Test_Rename_happy/c2/dest.txt")
 	a.Equal("hello", actual)
 }
 
@@ -54,12 +54,12 @@ func Test_ReadLines_happy(t *testing.T) {
 	a := require.New(t)
 	fs := afero.NewMemMapFs()
 
-	ufs.Mkdir(fs, "/Test_ReadAsLines_happy")
-	ufs.WriteLines(fs, "/Test_ReadAsLines_happy/f.txt",
+	ufs.MkdirP(fs, "/Test_ReadAsLines_happy")
+	ufs.WriteLinesP(fs, "/Test_ReadAsLines_happy/f.txt",
 		"line 1",
 		"line 2")
 
-	actual := ufs.ReadLines(fs, "/Test_ReadAsLines_happy/f.txt")
+	actual := ufs.ReadLinesP(fs, "/Test_ReadAsLines_happy/f.txt")
 	a.Equal([]string{
 		"line 1",
 		"line 2",
@@ -70,25 +70,25 @@ func Test_ListSuffixed_happy(t *testing.T) {
 	a := require.New(t)
 	fs := afero.NewMemMapFs()
 
-	ufs.Mkdir(fs, "Test_ListFilesWithExt_happy")
-	ufs.Mkdir(fs, "Test_ListFilesWithExt_happy/.")
-	ufs.Mkdir(fs, "Test_ListFilesWithExt_happy/..")
-	ufs.Mkdir(fs, "Test_ListFilesWithExt_happy/d.hosts.txt")
+	ufs.MkdirP(fs, "Test_ListFilesWithExt_happy")
+	ufs.MkdirP(fs, "Test_ListFilesWithExt_happy/.")
+	ufs.MkdirP(fs, "Test_ListFilesWithExt_happy/..")
+	ufs.MkdirP(fs, "Test_ListFilesWithExt_happy/d.hosts.txt")
 
-	ufs.WriteText(fs, "Test_ListFilesWithExt_happy/1.hosts.txt", "1")
-	ufs.WriteText(fs, "Test_ListFilesWithExt_happy/2.hosts.txt.not", "2")
-	ufs.WriteText(fs, "Test_ListFilesWithExt_happy/3.hosts.not.text", "3")
-	ufs.WriteText(fs, "Test_ListFilesWithExt_happy/4_empty.hosts.txt", "")
-	ufs.WriteText(fs, "Test_ListFilesWithExt_happy/.hosts.txt", "5")
+	ufs.WriteTextP(fs, "Test_ListFilesWithExt_happy/1.hosts.txt", "1")
+	ufs.WriteTextP(fs, "Test_ListFilesWithExt_happy/2.hosts.txt.not", "2")
+	ufs.WriteTextP(fs, "Test_ListFilesWithExt_happy/3.hosts.not.text", "3")
+	ufs.WriteTextP(fs, "Test_ListFilesWithExt_happy/4_empty.hosts.txt", "")
+	ufs.WriteTextP(fs, "Test_ListFilesWithExt_happy/.hosts.txt", "5")
 
 	a.Equal(map[string]string{
 		"1": filepath.Join("Test_ListFilesWithExt_happy", "1.hosts.txt"),
-	}, ufs.ListSuffixed(fs, "Test_ListFilesWithExt_happy", ".hosts.txt", true))
+	}, ufs.ListSuffixedP(fs, "Test_ListFilesWithExt_happy", ".hosts.txt", true))
 
 	a.Equal(map[string]string{
 		"1":       filepath.Join("Test_ListFilesWithExt_happy", "1.hosts.txt"),
 		"4_empty": filepath.Join("Test_ListFilesWithExt_happy", "4_empty.hosts.txt"),
-	}, ufs.ListSuffixed(fs, "Test_ListFilesWithExt_happy", ".hosts.txt", false))
+	}, ufs.ListSuffixedP(fs, "Test_ListFilesWithExt_happy", ".hosts.txt", false))
 }
 
 func Test_ExtractTitle_happy(t *testing.T) {
@@ -104,23 +104,23 @@ func Test_FileExists_happy(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
 	a.False(ufs.FileExists(fs, "/f.txt"))
-	ufs.WriteTextIfNotFound(fs, "/f.txt", "blah")
+	ufs.WriteTextIfNotFoundP(fs, "/f.txt", "blah")
 	a.True(ufs.FileExists(fs, "/f.txt"))
 
-	ufs.Mkdir(fs, "/d")
-	a.Panics(func() { ufs.FileExists(fs, "/d") }, "expect /d be file, but it is directory")
+	ufs.MkdirP(fs, "/d")
+	a.Panics(func() { ufs.FileExistsP(fs, "/d") }, "expect /d be file, but it is directory")
 }
 
 func Test_EnsureFileExists_happy(t *testing.T) {
 	a := require.New(t)
 	fs := afero.NewMemMapFs()
 
-	a.Panics(func() { ufs.EnsureFileExists(fs, "/F.txt") }, "file not found: %s")
-	ufs.WriteTextIfNotFound(fs, "/F.txt", "blah")
-	ufs.EnsureFileExists(fs, "/F.txt")
+	a.Panics(func() { ufs.EnsureFileExistsP(fs, "/F.txt") }, "file not found: %s")
+	ufs.WriteTextIfNotFoundP(fs, "/F.txt", "blah")
+	ufs.EnsureFileExistsP(fs, "/F.txt")
 
-	ufs.Mkdir(fs, "/D")
-	a.Panics(func() { ufs.EnsureFileExists(fs, "/D") }, "expect /D be file, but it is directory")
+	ufs.MkdirP(fs, "/D")
+	a.Panics(func() { ufs.EnsureFileExistsP(fs, "/D") }, "expect /D be file, but it is directory")
 }
 
 func Test_DirExists_happy(t *testing.T) {
@@ -128,37 +128,37 @@ func Test_DirExists_happy(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
 	a.False(ufs.DirExists(fs, "/d"))
-	ufs.Mkdir(fs, "/d")
+	ufs.MkdirP(fs, "/d")
 	a.True(ufs.DirExists(fs, "/d"))
 
-	ufs.WriteTextIfNotFound(fs, "/f.txt", "blah")
-	a.Panics(func() { ufs.DirExists(fs, "/f.txt") }, "expect /f.txt be directory, but it is file")
+	ufs.WriteTextIfNotFoundP(fs, "/f.txt", "blah")
+	a.Panics(func() { ufs.DirExistsP(fs, "/f.txt") }, "expect /f.txt be directory, but it is file")
 }
 
 func Test_EnsureDirExists_happy(t *testing.T) {
 	a := require.New(t)
 	fs := afero.NewMemMapFs()
 
-	a.Panics(func() { ufs.EnsureDirExists(fs, "/D") }, "directory not found: %s")
-	ufs.Mkdir(fs, "/D")
-	ufs.EnsureDirExists(fs, "/D")
+	a.Panics(func() { ufs.EnsureDirExistsP(fs, "/D") }, "directory not found: %s")
+	ufs.MkdirP(fs, "/D")
+	ufs.EnsureDirExistsP(fs, "/D")
 
-	ufs.WriteTextIfNotFound(fs, "/f.txt", "blah")
-	a.Panics(func() { ufs.EnsureDirExists(fs, "/f.txt") }, "expect /f.txt be directory, but it is file")
+	ufs.WriteTextIfNotFoundP(fs, "/f.txt", "blah")
+	a.Panics(func() { ufs.EnsureDirExistsP(fs, "/f.txt") }, "expect /f.txt be directory, but it is file")
 }
 
 func Test_RemoveFile_happy(t *testing.T) {
 	a := require.New(t)
 	fs := afero.NewMemMapFs()
 
-	ufs.RemoveFile(fs, "/f.html")
-	ufs.WriteTextIfNotFound(fs, "/f.html", "<html></html>")
+	ufs.RemoveFileP(fs, "/f.html")
+	ufs.WriteTextIfNotFoundP(fs, "/f.html", "<html></html>")
 	a.True(ufs.FileExists(fs, "/f.html"))
-	ufs.RemoveFile(fs, "/f.html")
+	ufs.RemoveFileP(fs, "/f.html")
 	a.False(ufs.FileExists(fs, "/f.html"))
 
-	ufs.Mkdir(fs, "/D")
-	a.Panics(func() { ufs.RemoveFile(fs, "/D") }, "expect /D be file, but it is directory")
+	ufs.MkdirP(fs, "/D")
+	a.Panics(func() { ufs.RemoveFileP(fs, "/D") }, "expect /D be file, but it is directory")
 	a.True(ufs.DirExists(fs, "/D"))
 }
 
@@ -166,59 +166,48 @@ func Test_RemoveDir_happy(t *testing.T) {
 	a := require.New(t)
 	fs := afero.NewMemMapFs()
 
-	ufs.RemoveDir(fs, "/d")
-	ufs.Mkdir(fs, "/d")
-	ufs.RemoveDir(fs, "/d")
+	ufs.RemoveDirP(fs, "/d")
+	ufs.MkdirP(fs, "/d")
+	ufs.RemoveDirP(fs, "/d")
 
-	ufs.WriteTextIfNotFound(fs, "/f.html", "<html></html>")
-	a.Panics(func() { ufs.RemoveDir(fs, "/f.html") }, "expect /f.html be directory, but it is file")
+	ufs.WriteTextIfNotFoundP(fs, "/f.html", "<html></html>")
+	a.Panics(func() { ufs.RemoveDirP(fs, "/f.html") }, "expect /f.html be directory, but it is file")
 }
 
 func Test_WriteIfNotFound_happy(t *testing.T) {
 	a := require.New(t)
 	fs := afero.NewMemMapFs()
 
-	a.True(ufs.WriteIfNotFound(fs, "/f.txt", []byte("hello")))
-	a.Equal("hello", ufs.ReadText(fs, "/f.txt"))
+	a.True(ufs.WriteIfNotFoundP(fs, "/f.txt", []byte("hello")))
+	a.Equal("hello", ufs.ReadTextP(fs, "/f.txt"))
 
 	a.False(ufs.WriteIfNotFound(fs, "/f.txt", []byte("updated")))
-	a.Equal("hello", ufs.ReadText(fs, "/f.txt"))
+	a.Equal("hello", ufs.ReadTextP(fs, "/f.txt"))
 }
 
 func Test_WriteTextIfNotFound_happy(t *testing.T) {
 	a := require.New(t)
 	fs := afero.NewMemMapFs()
 
-	a.True(ufs.WriteTextIfNotFound(fs, "/f.txt", "hello"))
-	a.Equal("hello", ufs.ReadText(fs, "/f.txt"))
+	a.True(ufs.WriteTextIfNotFoundP(fs, "/f.txt", "hello"))
+	a.Equal("hello", ufs.ReadTextP(fs, "/f.txt"))
 
-	a.False(ufs.WriteTextIfNotFound(fs, "/f.txt", "updated"))
-	a.Equal("hello", ufs.ReadText(fs, "/f.txt"))
-}
-
-func Test_WriteLinesIfNotFound_happy(t *testing.T) {
-	a := require.New(t)
-	fs := afero.NewMemMapFs()
-
-	a.True(ufs.WriteLinesIfNotFound(fs, "/f.txt", "1", "2"))
-	a.Equal("1\n2", ufs.ReadText(fs, "/f.txt"))
-
-	a.False(ufs.WriteLinesIfNotFound(fs, "/f.txt", "1", "2"))
-	a.Equal("1\n2", ufs.ReadText(fs, "/f.txt"))
+	a.False(ufs.WriteTextIfNotFoundP(fs, "/f.txt", "updated"))
+	a.Equal("hello", ufs.ReadTextP(fs, "/f.txt"))
 }
 
 func Test_TempFile_happy(t *testing.T) {
 	a := require.New(t)
 	fs := afero.NewMemMapFs()
 
-	actual := ufs.TempFile(fs, "xyz")
+	actual := ufs.TempFileP(fs, "xyz")
 	a.True(strings.Contains(actual, "xyz"))
 	a.NotEqual("xyz", actual)
 }
 
 func Test_ExpandHomePath_happy(t *testing.T) {
 	a := require.New(t)
-	a.Equal("none", ufs.ExpandHomePath("none"))
+	a.Equal("none", ufs.ExpandHomePathP("none"))
 
-	a.Equal(ufs.UserHomeDir(), ufs.ExpandHomePath("~"))
+	a.Equal(ufs.UserHomeDirP(), ufs.ExpandHomePathP("~"))
 }

@@ -55,15 +55,15 @@ func Test_NewFile(t *testing.T) {
 	a := require.New(t)
 	afs := afero.NewMemMapFs()
 
-	fRemote := ufs.NewFile(nil, "https://google.com", nil, 0)
+	fRemote := ufs.NewFileP(nil, "https://google.com", nil, 0)
 	_, isRemoteFile := fRemote.(ufs.RemoteFile)
 	a.True(isRemoteFile)
 
-	fLocal := ufs.NewFile(afs, "file://test.txt", nil, 0)
+	fLocal := ufs.NewFileP(afs, "file://test.txt", nil, 0)
 	_, isLocalFile := fLocal.(ufs.AferoFile)
 	a.True(isLocalFile)
 
-	fLocal = ufs.NewFile(afs, "test.txt", nil, 0)
+	fLocal = ufs.NewFileP(afs, "test.txt", nil, 0)
 	_, isLocalFile = fLocal.(ufs.AferoFile)
 	a.True(isLocalFile)
 }
@@ -84,9 +84,9 @@ func Test_DownloadText_happy(t *testing.T) {
 	a := require.New(t)
 	afs := afero.NewMemMapFs()
 
-	ufs.WriteText(afs, "test.txt", "Test_DownloadText_happy")
+	ufs.WriteTextP(afs, "test.txt", "Test_DownloadText_happy")
 
-	actual := ufs.DownloadText(afs, "test.txt", nil, 0)
+	actual := ufs.DownloadTextP(afs, "test.txt", nil, 0)
 	a.Equal("Test_DownloadText_happy", actual)
 }
 
@@ -94,7 +94,7 @@ func Test_DownloadText_Remote(t *testing.T) {
 	a := require.New(t)
 	afs := afero.NewMemMapFs()
 
-	actual := ufs.DownloadText(afs, "https://mirror.sjtu.edu.cn/debian/README.mirrors.txt", nil, 0)
+	actual := ufs.DownloadTextP(afs, "https://mirror.sjtu.edu.cn/debian/README.mirrors.txt", nil, 0)
 	a.Equal("The list of Debian mirror sites is available here: https://www.debian.org/mirror/list\n", actual)
 }
 
@@ -102,9 +102,9 @@ func Test_YamlFileToMap_happy(t *testing.T) {
 	a := require.New(t)
 	fs := afero.NewMemMapFs()
 
-	ufs.WriteText(fs, "test.yaml", `k: v`)
+	ufs.WriteTextP(fs, "test.yaml", `k: v`)
 
-	configMap := ufs.MapFromYamlFile(fs, "test.yaml", false)
+	configMap := ufs.MapFromYamlFileP(fs, "test.yaml", false)
 
 	a.Len(configMap, 1)
 	a.Equal("v", configMap["k"])

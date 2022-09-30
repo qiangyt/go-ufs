@@ -6,6 +6,7 @@ import (
 
 	"github.com/goodsru/go-universal-network-adapter/models"
 	"github.com/goodsru/go-universal-network-adapter/services"
+	"github.com/pkg/errors"
 )
 
 var _uniNwAdapter *services.UniversalNetworkAdapter
@@ -26,13 +27,21 @@ func init() {
 	_uniNwAdapter = services.NewUniversalNetworkAdapter()
 }
 
-func NewRemoteFile(url string, credentials Credentials, timeout time.Duration) RemoteFile {
-	remoteFile, err := models.NewRemoteFile(models.NewDestination(url, credentials, &timeout))
+func NewRemoteFileP(url string, credentials Credentials, timeout time.Duration) RemoteFile {
+	r, err := NewRemoteFile(url, credentials, timeout)
 	if err != nil {
 		panic(err)
 	}
+	return r
+}
 
-	return &RemoteFileT{remoteFile}
+func NewRemoteFile(url string, credentials Credentials, timeout time.Duration) (RemoteFile, error) {
+	remoteFile, err := models.NewRemoteFile(models.NewDestination(url, credentials, &timeout))
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to new remote file object")
+	}
+
+	return &RemoteFileT{remoteFile}, nil
 }
 
 func (me RemoteFile) Name() string {
@@ -73,11 +82,19 @@ func (me RemoteFile) Timeout() time.Duration {
 	return me.backend.ParsedDestination.Timeout
 }
 
-func (me RemoteFile) Download() Content {
-	r, err := _uniNwAdapter.Download(me.backend)
+func (me RemoteFile) DownloadP() Content {
+	r, err := me.Download()
 	if err != nil {
 		panic(err)
 	}
-
 	return r
+}
+
+func (me RemoteFile) Download() (Content, error) {
+	r, err := _uniNwAdapter.Download(me.backend)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to download %s", me.Url())
+	}
+
+	return r, nil
 }

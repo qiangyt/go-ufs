@@ -32,7 +32,8 @@ type File interface {
 	URL() *url.URL
 	Credentials() Credentials
 	Timeout() time.Duration
-	Download() Content
+	DownloadP() Content
+	Download() (Content, error)
 }
 
 type (
@@ -45,7 +46,15 @@ type (
 	Content  = *ContentT
 )
 
-func NewFile(afs afero.Fs, url string, credentials Credentials, timeout time.Duration) File {
+func NewFileP(afs afero.Fs, url string, credentials Credentials, timeout time.Duration) File {
+	r, err := NewFile(afs, url, credentials, timeout)
+	if err != nil {
+		panic(err)
+	}
+	return r
+}
+
+func NewFile(afs afero.Fs, url string, credentials Credentials, timeout time.Duration) (File, error) {
 	if IsRemote(url) {
 		return NewRemoteFile(url, credentials, timeout)
 	}
@@ -106,33 +115,86 @@ func ShortDescription(url string) string {
 	return protocol + r[:3] + "..." + r[lem-(8+1+5): /* 12345678.hosts */]
 }
 
-func DownloadBytes(fs afero.Fs, url string, credentials Credentials, timeout time.Duration) []byte {
-	f := NewFile(fs, url, credentials, timeout)
-	blob := f.Download().Blob
+func DownloadBytesP(fs afero.Fs, url string, credentials Credentials, timeout time.Duration) []byte {
+	r, err := DownloadBytes(fs, url, credentials, timeout)
+	if err != nil {
+		panic(err)
+	}
+	return r
+}
+
+func DownloadBytes(fs afero.Fs, url string, credentials Credentials, timeout time.Duration) ([]byte, error) {
+	f, err := NewFile(fs, url, credentials, timeout)
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := f.Download()
+	if err != nil {
+		return nil, err
+	}
+
+	blob := c.Blob
 	defer blob.Close()
 
 	return comm.ReadBytes(blob)
 }
 
-func DownloadText(fs afero.Fs, url string, credentials Credentials, timeout time.Duration) string {
-	bytes := DownloadBytes(fs, url, credentials, timeout)
-	return string(bytes)
-}
-
-func MapFromYamlFile(fs afero.Fs, path string, envsubt bool) map[string]any {
-	r := map[string]any{}
-	FromYamlFile(fs, path, envsubt, &r)
+func DownloadTextP(fs afero.Fs, url string, credentials Credentials, timeout time.Duration) string {
+	r, err := DownloadText(fs, url, credentials, timeout)
+	if err != nil {
+		panic(err)
+	}
 	return r
 }
 
-func FromYamlFile(fs afero.Fs, path string, envsubt bool, result any) {
-	yamlText := ReadText(fs, path)
+func DownloadText(fs afero.Fs, url string, credentials Credentials, timeout time.Duration) (string, error) {
+	bytes, err := DownloadBytes(fs, url, credentials, timeout)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
+}
+
+func MapFromYamlFileP(fs afero.Fs, path string, envsubt bool) map[string]any {
+	r, err := MapFromYamlFile(fs, path, envsubt)
+	if err != nil {
+		panic(err)
+	}
+	return r
+}
+
+func MapFromYamlFile(fs afero.Fs, path string, envsubt bool) (map[string]any, error) {
+	r := map[string]any{}
+	if err := FromYamlFile(fs, path, envsubt, &r); err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
+
+func FromYamlFileP(fs afero.Fs, path string, envsubt bool, result any) {
+	if err := FromYamlFile(fs, path, envsubt, result); err != nil {
+		panic(err)
+	}
+}
+
+func FromYamlFile(fs afero.Fs, path string, envsubt bool, result any) error {
+	yamlText, err := ReadText(fs, path)
+	if err != nil {
+		return err
+	}
 
 	if envsubt {
-		yamlText = comm.EnvSubst(yamlText, nil)
+		yamlText, err = comm.EnvSubst(yamlText, nil)
+		if err != nil {
+			return err
+		}
+
 	}
 
 	if err := yaml.Unmarshal([]byte(yamlText), result); err != nil {
-		panic(errors.Wrapf(err, "failed to parse yaml file: %s\n\n%s", path, yamlText))
+		return errors.Wrapf(err, "failed to parse yaml file: %s\n\n%s", path, yamlText)
 	}
+	return nil
 }

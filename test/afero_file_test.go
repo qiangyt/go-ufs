@@ -16,11 +16,11 @@ func Test_AferoFile_happy(t *testing.T) {
 	a := require.New(t)
 	fs := afero.NewMemMapFs()
 
-	ufs.WriteText(fs, "/hello/world/test.txt", "hi")
+	ufs.WriteTextP(fs, "/hello/world/test.txt", "hi")
 
 	cred := &ufs.CredentialsT{User: "u"}
-	a1 := ufs.NewAferoFile(fs, "/hello/world/test.txt", cred, 3*time.Second)
-	a2 := ufs.NewAferoFile(fs, "file:///hello/world/test.txt", cred, 3*time.Second)
+	a1 := ufs.NewAferoFileP(fs, "/hello/world/test.txt", cred, 3*time.Second)
+	a2 := ufs.NewAferoFileP(fs, "file:///hello/world/test.txt", cred, 3*time.Second)
 
 	a.Same(fs, a1.Fs())
 	a.Same(fs, a2.Fs())
@@ -41,7 +41,7 @@ func Test_AferoFile_happy(t *testing.T) {
 	a.Equal(tUrl, a1.URL())
 	a.Equal(tUrl, a2.URL())
 
-	c1 := a1.Download()
+	c1 := a1.DownloadP()
 	a.Equal("test.txt", c1.Name)
 	a.Equal("/hello/world/test.txt", c1.Path)
 
@@ -49,7 +49,7 @@ func Test_AferoFile_happy(t *testing.T) {
 	defer c1.Blob.Close()
 	a.Equal("hi", string(txt1))
 
-	c2 := a2.Download()
+	c2 := a2.DownloadP()
 	a.Equal("test.txt", c2.Name)
 	a.Equal("/hello/world/test.txt", c2.Path)
 
