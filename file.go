@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fastgh/go-comm"
+	"github.com/fastgh/go-comm/v2"
 	"github.com/goodsru/go-universal-network-adapter/models"
 	"github.com/goodsru/go-universal-network-adapter/services"
 	"github.com/pkg/errors"

@@ -26,7 +26,8 @@ type TopicBase interface {
 type Topic[K any] interface {
 	TopicBase
 
-	Sub(name string, lsner Listener[K], qSize uint32) int
+	SubP(name string, lsner Listener[K], qSize uint32) int
+	Sub(name string, lsner Listener[K], qSize uint32) (int, error)
 	Pub(mode PubMode, evnt K)
 }
 

@@ -12,8 +12,7 @@ import (
 	"github.com/goodsru/go-universal-network-adapter/models"
 )
 
-type HttpDownloader struct {
-}
+type HttpDownloader struct{}
 
 // Service method,that makes a HEAD request to remote server to get file size info
 func (httpDownloader *HttpDownloader) Stat(destination *models.ParsedDestination) (*models.RemoteFile, error) {
@@ -72,11 +71,10 @@ func (httpDownloader *HttpDownloader) download(client *http.Client, remoteFile *
 			FilePath: localFile.Name(),
 		},
 	}, nil
-
 }
 
 // Return basic golang http Client with custom timeout from user request
-func (httpDownloader *HttpDownloader) getClient(destination *models.ParsedDestination) *http.Client { //IHttpClient
+func (httpDownloader *HttpDownloader) getClient(destination *models.ParsedDestination) *http.Client { // IHttpClient
 	client := &http.Client{
 		Timeout: destination.Timeout,
 	}

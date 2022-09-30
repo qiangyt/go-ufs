@@ -1,10 +1,10 @@
-# Type-safe in-process pub/sub event library, for Go language
+# Type-safe in-process pub/sub event library for Go language
 
 # Features
   - Type-safe: every kind of event is a concrete go type instead of error-prone interface{} or map[string]interface{}. Unmatched event is rejected.
   - Pub-sub (topic): publishes event to multiple listeners, thread-safely
-  - Asynchronous: listeners wait on their separated go channels and routines. Listener execution panic won't affect others, error is logged only instead
-  - Fine-tuned logging: agnostic logging abstraction, able to adapt various of logging implementation. Go std log and github.com/phuslu/log are built-in provided. Or turn on logging completelly.
+  - Asynchronous: listeners wait on their separated go channels and go routines. Listener execution panic won't affect others, error is logged only instead
+  - Fine-tuned logging: agnostic logging abstraction, easy to adopt various of logging implementations. Go std log and github.com/phuslu/log are built-in ones. Or turn on logging completely.
 
 # Install
   ```go
@@ -19,7 +19,7 @@
     "fmt"
 
     "github.com/fastgh/go-event"
-    "github.com/fastgh/go-event/loggers"
+    "github.com/fastgh/go-event/loggers/std"
   )
 
   type MyEvent struct {
@@ -27,7 +27,7 @@
   }
 
   func main() {
-    myHub := event.NewHub("default", loggers.NewDefaultGlobalStdLogger())
+    myHub := event.NewHub("default", std.NewDefaultGlobalStdLogger())
 
     myTopic := event.CreateTopic(myHub, "myTopic", MyEvent{})
 

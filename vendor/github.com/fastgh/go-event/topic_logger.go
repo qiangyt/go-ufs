@@ -27,6 +27,7 @@ func (me TopicLogger) LogInfo(enm LogEnum, lsner string) {
 func (me TopicLogger) LogError(enm LogEnum, lsner string, err any) {
 	me.logr.LogError(enm, me.topic, lsner, err)
 }
+
 func (me TopicLogger) LogEventDebug(enm LogEnum, lsner string, evnt Event) {
 	me.logr.LogEventDebug(enm, lsner, evnt)
 }

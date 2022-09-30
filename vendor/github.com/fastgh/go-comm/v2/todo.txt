@@ -1,0 +1,2 @@
+- Context.Done() for command execution
+- zenity options

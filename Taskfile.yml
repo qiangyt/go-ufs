@@ -42,7 +42,9 @@ tasks:
     desc: build
     cmds:
       - task: format
-      - go build -trimpath .
+      - GOOS=darwin go build -trimpath .
+      - GOOS=linux go build -trimpath .
+      - GOOS=windows go build -trimpath .
 
   gen:
     desc: generates go source files

@@ -1,11 +1,12 @@
 package event
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"sync"
 	"sync/atomic"
+
+	"github.com/pkg/errors"
 )
 
 type TopicImpl[K any] struct {
@@ -42,9 +43,17 @@ func (me *TopicImpl[K]) CurrEventId() EventId { return EventId(me.eid.Load()) }
 
 func (me *TopicImpl[K]) NewEventId() EventId { return EventId(me.eid.Add(1)) }
 
-func (me *TopicImpl[K]) Sub(name string, lsner Listener[K], qSize uint32) int {
+func (me *TopicImpl[K]) SubP(name string, lsner Listener[K], qSize uint32) int {
+	r, err := me.Sub(name, lsner, qSize)
+	if err != nil {
+		panic(err)
+	}
+	return r
+}
+
+func (me *TopicImpl[K]) Sub(name string, lsner Listener[K], qSize uint32) (int, error) {
 	if lsner == nil {
-		panic(errors.New("listener cannot be nil"))
+		return 0, errors.New("listener cannot be nil")
 	}
 
 	me.mx.Lock()
@@ -54,7 +63,7 @@ func (me *TopicImpl[K]) Sub(name string, lsner Listener[K], qSize uint32) int {
 	for i, existing := range evntLsners {
 		if existing.name == name {
 			me.logr.LogError(ListenerSubErr, name, fmt.Sprintf("duplicated listener on #%d", i))
-			return -1
+			return -1, nil
 		}
 	}
 
@@ -66,7 +75,7 @@ func (me *TopicImpl[K]) Sub(name string, lsner Listener[K], qSize uint32) int {
 	me.waitG.Add(1)
 
 	me.logr.LogInfo(ListenerSubOk, name)
-	return len(evntLsners)
+	return len(evntLsners), nil
 }
 
 func (me *TopicImpl[K]) UnSub(name string) bool {

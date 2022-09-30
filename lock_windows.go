@@ -24,7 +24,7 @@ func CreateLockFile(fs afero.Fs, filename string) (afero.File, error) {
 		return nil, err
 	}
 
-	f, err := fs.OpenFile(filename, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	f, err := fs.OpenFile(filename, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
 	if err != nil {
 		return nil, err
 	}

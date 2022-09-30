@@ -11,23 +11,23 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 
-	"github.com/fastgh/go-comm"
+	"github.com/fastgh/go-comm/v2"
 	"github.com/spf13/afero"
 )
 
 var AppFs = afero.NewOsFs()
 
 func DefaultEtcHosts() string {
-	switch comm.DefaultOSType() {
-	case comm.Windows:
+	if comm.IsWindows() {
 		return `C:\Windows\System32\Drivers\etc\hosts`
-	case comm.Linux:
-		return "/etc/hosts"
-	case comm.Darwin:
-		return "/private/etc/hosts"
-	default:
-		panic(errors.New(runtime.GOOS + " is not yet supported"))
 	}
+	if comm.IsLinux() {
+		return "/etc/hosts"
+	}
+	if comm.IsDarwin() {
+		return "/private/etc/hosts"
+	}
+	panic(errors.New(runtime.GOOS + " is not yet supported"))
 }
 
 func CopyFile(fs afero.Fs, path string, newPath string) int64 {
