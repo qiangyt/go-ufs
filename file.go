@@ -125,9 +125,12 @@ func MapFromYamlFile(fs afero.Fs, path string) map[string]any {
 	return r
 }
 
-func FromYamlFile(fs afero.Fs, path string, result any) {
+func FromYamlFile(fs afero.Fs, path string, envsubt bool, result any) {
 	yamlText := ReadText(fs, path)
-	yamlText = comm.EnvSubst(yamlText, nil)
+
+	if envsubt {
+		yamlText = comm.EnvSubst(yamlText, nil)
+	}
 
 	if err := yaml.Unmarshal([]byte(yamlText), result); err != nil {
 		panic(errors.Wrapf(err, "failed to parse yaml file: %s\n\n%s", path, yamlText))
