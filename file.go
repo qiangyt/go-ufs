@@ -119,9 +119,9 @@ func DownloadText(fs afero.Fs, url string, credentials Credentials, timeout time
 	return string(bytes)
 }
 
-func MapFromYamlFile(fs afero.Fs, path string) map[string]any {
+func MapFromYamlFile(fs afero.Fs, path string, envsubt bool) map[string]any {
 	r := map[string]any{}
-	FromYamlFile(fs, path, &r)
+	FromYamlFile(fs, path, envsubt, &r)
 	return r
 }
 

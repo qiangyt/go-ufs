@@ -104,7 +104,7 @@ func Test_YamlFileToMap_happy(t *testing.T) {
 
 	ufs.WriteText(fs, "test.yaml", `k: v`)
 
-	configMap := ufs.MapFromYamlFile(fs, "test.yaml")
+	configMap := ufs.MapFromYamlFile(fs, "test.yaml", false)
 
 	a.Len(configMap, 1)
 	a.Equal("v", configMap["k"])
