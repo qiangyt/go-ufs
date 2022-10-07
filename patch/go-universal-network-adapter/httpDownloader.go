@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/goodsru/go-universal-network-adapter/models"
@@ -37,8 +37,12 @@ func (httpDownloader *HttpDownloader) Remove(remoteFile *models.RemoteFile) erro
 }
 
 func (httpDownloader *HttpDownloader) download(client *http.Client, remoteFile *models.RemoteFile) (*models.RemoteFileContent, error) {
-	localFile, err := ioutil.TempFile("", remoteFile.Name+".*")
-	defer localFile.Close()
+	localFile, err := os.CreateTemp("", remoteFile.Name+".*")
+	defer func() {
+		if localFile != nil {
+			_ = localFile.Close()
+		}
+	}()
 	if err != nil {
 		return nil, err
 	}
@@ -63,6 +67,9 @@ func (httpDownloader *HttpDownloader) download(client *http.Client, remoteFile *
 		return nil, errors.New(resp.Status)
 	}
 	_, err = io.Copy(localFile, resp.Body)
+	if err != nil {
+		return nil, err
+	}
 
 	return &models.RemoteFileContent{
 		Name: remoteFile.Name,
