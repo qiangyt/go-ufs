@@ -1,8 +1,6 @@
 package ufs
 
 import (
-	"crypto/sha256"
-	"fmt"
 	"net/url"
 	"path/filepath"
 	"strings"
@@ -115,47 +113,6 @@ func ShortDescription(url string) string {
 	}
 
 	return protocol + r[:3] + "..." + r[lem-(8+1+5): /* 12345678.hosts */]
-}
-
-func FallbackFilePath(fallbackDir string, url string) string {
-	sumBytes := sha256.Sum256([]byte(url))
-	sumText := fmt.Sprintf("%x\n", sumBytes)
-	return filepath.Join(fallbackDir, sumText)
-}
-
-func HasFallbackFile(fallbackDir string, fs afero.Fs, url string) (bool, error) {
-	fallbackFilePath := FallbackFilePath(fallbackDir, url)
-	return FileExists(fs, fallbackFilePath)
-}
-
-func ReadFallbackFile(fallbackDir string, fs afero.Fs, url string) (string, []byte, error) {
-	fallbackFilePath := FallbackFilePath(fallbackDir, url)
-
-	exists, err := FileExists(fs, fallbackFilePath)
-	if err != nil {
-		return "", nil, err
-	}
-	if !exists {
-		return "", nil, nil
-	}
-	bytes, err := ReadBytes(fs, fallbackFilePath)
-	return fallbackFilePath, bytes, err
-}
-
-func WriteFallbackFile(fallbackDir string, fs afero.Fs, url string, bytes []byte) (string, error) {
-	fallbackFilePath := FallbackFilePath(fallbackDir, url)
-
-	exists, err := FileExists(fs, fallbackFilePath)
-	if err != nil {
-		return "", err
-	}
-	if exists {
-		err = RemoveFile(fs, fallbackFilePath)
-		if err != nil {
-			return "", err
-		}
-	}
-	return fallbackFilePath, Write(fs, fallbackFilePath, bytes)
 }
 
 func DownloadBytesP(logger comm.Logger, fallbackDir string, fs afero.Fs, url string, credentials Credentials, timeout time.Duration) []byte {
