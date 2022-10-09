@@ -1,6 +1,8 @@
 package ufs
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"net/url"
 	"path/filepath"
 	"strings"
@@ -115,15 +117,90 @@ func ShortDescription(url string) string {
 	return protocol + r[:3] + "..." + r[lem-(8+1+5): /* 12345678.hosts */]
 }
 
-func DownloadBytesP(fs afero.Fs, url string, credentials Credentials, timeout time.Duration) []byte {
-	r, err := DownloadBytes(fs, url, credentials, timeout)
+func FallbackFilePath(fallbackDir string, url string) string {
+	sumBytes := sha256.Sum256([]byte(url))
+	sumText := fmt.Sprintf("%x\n", sumBytes)
+	return filepath.Join(fallbackDir, sumText)
+}
+
+func HasFallbackFile(fallbackDir string, fs afero.Fs, url string) (bool, error) {
+	fallbackFilePath := FallbackFilePath(fallbackDir, url)
+	return FileExists(fs, fallbackFilePath)
+}
+
+func ReadFallbackFile(fallbackDir string, fs afero.Fs, url string) (string, []byte, error) {
+	fallbackFilePath := FallbackFilePath(fallbackDir, url)
+
+	exists, err := FileExists(fs, fallbackFilePath)
+	if err != nil {
+		return "", nil, err
+	}
+	if !exists {
+		return "", nil, nil
+	}
+	bytes, err := ReadBytes(fs, fallbackFilePath)
+	return fallbackFilePath, bytes, err
+}
+
+func WriteFallbackFile(fallbackDir string, fs afero.Fs, url string, bytes []byte) (string, error) {
+	fallbackFilePath := FallbackFilePath(fallbackDir, url)
+
+	exists, err := FileExists(fs, fallbackFilePath)
+	if err != nil {
+		return "", err
+	}
+	if exists {
+		err = RemoveFile(fs, fallbackFilePath)
+		if err != nil {
+			return "", err
+		}
+	}
+	return fallbackFilePath, Write(fs, fallbackFilePath, bytes)
+}
+
+func DownloadBytesP(logger comm.Logger, fallbackDir string, fs afero.Fs, url string, credentials Credentials, timeout time.Duration) []byte {
+	r, err := DownloadBytes(logger, fallbackDir, fs, url, credentials, timeout)
 	if err != nil {
 		panic(err)
 	}
 	return r
 }
 
-func DownloadBytes(fs afero.Fs, url string, credentials Credentials, timeout time.Duration) ([]byte, error) {
+func DownloadBytes(logger comm.Logger, fallbackDir string, fs afero.Fs, url string, credentials Credentials, timeout time.Duration) (result []byte, err error) {
+	result, err = downloadBytes(fs, url, credentials, timeout)
+
+	if len(fallbackDir) > 0 {
+		if err == nil {
+			if logger != nil {
+				logger.Info().Str("fallbackDir", fallbackDir).Str("url", url).Msg("save download files to fallback dir")
+			}
+			fallbackFilePath, fallbackErr := WriteFallbackFile(fallbackDir, fs, url, result)
+			if fallbackErr != nil {
+				if logger != nil {
+					logger.Warn().Err(fallbackErr).Str("url", url).Str("fallbackFilePath", fallbackFilePath).Msg("save fallback file failed")
+				}
+			}
+			return
+		} else {
+			if logger != nil {
+				logger.Warn().Err(err).Str("url", url).Msg("fallbacking due to failed to download the file")
+			}
+			fallbackFilePath, r, fallbackErr := ReadFallbackFile(fallbackDir, fs, url)
+			if fallbackErr != nil {
+				if logger != nil {
+					logger.Warn().Err(fallbackErr).Str("url", url).Str("fallbackFilePath", fallbackFilePath).Msg("get fallbacked file failed too")
+				}
+			} else {
+				result = r
+				err = nil
+			}
+		}
+	}
+
+	return
+}
+
+func downloadBytes(fs afero.Fs, url string, credentials Credentials, timeout time.Duration) ([]byte, error) {
 	f, err := NewFile(fs, url, credentials, timeout)
 	if err != nil {
 		return nil, err
@@ -140,16 +217,16 @@ func DownloadBytes(fs afero.Fs, url string, credentials Credentials, timeout tim
 	return comm.ReadBytes(blob)
 }
 
-func DownloadTextP(fs afero.Fs, url string, credentials Credentials, timeout time.Duration) string {
-	r, err := DownloadText(fs, url, credentials, timeout)
+func DownloadTextP(logger comm.Logger, fallbackDir string, fs afero.Fs, url string, credentials Credentials, timeout time.Duration) string {
+	r, err := DownloadText(logger, fallbackDir, fs, url, credentials, timeout)
 	if err != nil {
 		panic(err)
 	}
 	return r
 }
 
-func DownloadText(fs afero.Fs, url string, credentials Credentials, timeout time.Duration) (string, error) {
-	bytes, err := DownloadBytes(fs, url, credentials, timeout)
+func DownloadText(logger comm.Logger, fallbackDir string, fs afero.Fs, url string, credentials Credentials, timeout time.Duration) (string, error) {
+	bytes, err := DownloadBytes(logger, fallbackDir, fs, url, credentials, timeout)
 	if err != nil {
 		return "", err
 	}
