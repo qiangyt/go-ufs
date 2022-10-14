@@ -18,6 +18,7 @@ tasks:
       - go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.49.0
       - go install github.com/dmarkham/enumer@v1.5.6
       - go install mvdan.cc/gofumpt@v0.4.0
+      - go install honnef.co/go/tools/cmd/staticcheck@v0.3.3
 
   mod:
     desc: Downloads and tidy Go modules
@@ -32,6 +33,7 @@ tasks:
     sources:
       - './**/*.go'
     cmds:
+      - staticcheck ./...
       - golangci-lint run
 
   format:

@@ -40,9 +40,13 @@ func (me ErrorGroup) Error() string {
 }
 
 func (me ErrorGroup) Add(err error) {
-	me.ellors = append(me.ellors, err)
+	if err != nil {
+		me.ellors = append(me.ellors, err)
+	}
 }
 
-func (me ErrorGroup) AddGroup(that ErrorGroup) {
-	me.ellors = append(me.ellors, that.ellors...)
+func (me ErrorGroup) AddAll(that ErrorGroup) {
+	if that != nil && len(that.ellors) > 0 {
+		me.ellors = append(me.ellors, that.ellors...)
+	}
 }

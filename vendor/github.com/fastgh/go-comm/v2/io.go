@@ -30,7 +30,7 @@ func ReadBytesP(reader io.Reader) []byte {
 func ReadBytes(reader io.Reader) ([]byte, error) {
 	r, err := io.ReadAll(reader)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to read from Reader")
+		return nil, errors.Wrap(err, "read from Reader")
 	}
 	return r, nil
 }

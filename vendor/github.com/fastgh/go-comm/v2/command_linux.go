@@ -5,7 +5,7 @@ package comm
 
 func RunSudoCommand(vars map[string]any, dir string, cmd string, passwordInput FnInput) (CommandOutput, error) {
 	password := passwordInput()
-	return RunCommandWithInput(vars, dir, "sudo", "sh", cmd)(password)
+	return RunCommandWithInput(vars, dir, "sh", cmd)(password)
 }
 
 func RunUserCommand(vars map[string]any, dir string, cmd string) (CommandOutput, error) {

@@ -40,7 +40,7 @@ func NewAferoFile(afs afero.Fs, apath string, credentials Credentials, timeout t
 
 	_url, err := url.Parse(rawUrl)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse url: %s", rawUrl)
+		return nil, errors.Wrapf(err, "parse url: %s", rawUrl)
 	}
 
 	return &AferoFileT{

@@ -47,23 +47,26 @@ func CopyFileP(fs afero.Fs, path string, newPath string) int64 {
 }
 
 func CopyFile(fs afero.Fs, path string, newPath string) (int64, error) {
-	EnsureFileExists(fs, path)
+	err := EnsureFileExists(fs, path)
+	if err != nil {
+		return 0, err
+	}
 
 	src, err := fs.Open(path)
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to read file %s", path)
+		return 0, errors.Wrapf(err, "read file %s", path)
 	}
 	defer src.Close()
 
 	dst, err := fs.Create(newPath)
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to create file %s", newPath)
+		return 0, errors.Wrapf(err, "create file %s", newPath)
 	}
 	defer dst.Close()
 
 	nBytes, err := io.Copy(dst, src)
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to copy file %s to %s", path, newPath)
+		return 0, errors.Wrapf(err, "copy file %s to %s", path, newPath)
 	}
 	return nBytes, nil
 }
@@ -77,7 +80,7 @@ func RenameP(fs afero.Fs, path string, newPath string) {
 func Rename(fs afero.Fs, path string, newPath string) error {
 	err := fs.Rename(path, newPath)
 	if err != nil {
-		return errors.Wrapf(err, "failed to move file %s to %s", path, newPath)
+		return errors.Wrapf(err, "move file %s to %s", path, newPath)
 	}
 	return nil
 }
@@ -95,7 +98,7 @@ func Stat(fs afero.Fs, path string, ensureExists bool) (os.FileInfo, error) {
 	r, err := fs.Stat(path)
 	if err != nil {
 		if !os.IsNotExist(err) {
-			return nil, errors.Wrapf(err, "failed to stat file: %s", path)
+			return nil, errors.Wrapf(err, "stat file: %s", path)
 		}
 		if ensureExists {
 			return nil, errors.Wrapf(err, "file not found: %s", path)
@@ -202,7 +205,7 @@ func RemoveFile(fs afero.Fs, path string) error {
 		return nil
 	}
 	if err := fs.Remove(path); err != nil {
-		return errors.Wrapf(err, "failed to delete file: %s", path)
+		return errors.Wrapf(err, "delete file: %s", path)
 	}
 	return nil
 }
@@ -226,7 +229,7 @@ func RemoveDir(fs afero.Fs, path string) error {
 		return nil
 	}
 	if err := fs.RemoveAll(path); err != nil {
-		return errors.Wrapf(err, "failed to delete directory: %s", path)
+		return errors.Wrapf(err, "delete directory: %s", path)
 	}
 	return nil
 }
@@ -243,7 +246,7 @@ func ReadBytesP(fs afero.Fs, path string) []byte {
 func ReadBytes(fs afero.Fs, path string) ([]byte, error) {
 	r, err := afero.ReadFile(fs, path)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to read file: %s", path)
+		return nil, errors.Wrapf(err, "read file: %s", path)
 	}
 	return r, nil
 }
@@ -279,7 +282,7 @@ func ReadLines(fs afero.Fs, path string) ([]string, error) {
 
 	f, err := fs.Open(path)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to open file: %s", path)
+		return nil, errors.Wrapf(err, "open file: %s", path)
 	}
 	defer f.Close()
 
@@ -318,7 +321,7 @@ func WriteP(fs afero.Fs, path string, content []byte) {
 // Write ...
 func Write(fs afero.Fs, path string, content []byte) error {
 	if err := afero.WriteFile(fs, path, content, 0o640); err != nil {
-		return errors.Wrapf(err, "failed to write file: %s", path)
+		return errors.Wrapf(err, "write file: %s", path)
 	}
 	return nil
 }
@@ -382,7 +385,7 @@ func ExpandHomePath(path string) (string, error) {
 	var err error
 
 	if r, err = homedir.Expand(path); err != nil {
-		return "", errors.Wrapf(err, "failed to expand path: %s", path)
+		return "", errors.Wrapf(err, "expand path: %s", path)
 	}
 	return r, nil
 }
@@ -400,7 +403,7 @@ func UserHomeDirP() string {
 func UserHomeDir() (string, error) {
 	r, err := os.UserHomeDir()
 	if err != nil {
-		return "", errors.Wrap(err, "failed to get home path")
+		return "", errors.Wrap(err, "get home path")
 	}
 	return r, nil
 }
@@ -414,7 +417,7 @@ func MkdirP(fs afero.Fs, path string) {
 // Mkdir ...
 func Mkdir(fs afero.Fs, path string) error {
 	if err := fs.MkdirAll(path, os.ModePerm); err != nil {
-		return errors.Wrapf(err, "failed to create directory: %s", path)
+		return errors.Wrapf(err, "create directory: %s", path)
 	}
 	return nil
 }
@@ -430,7 +433,7 @@ func ListSuffixedP(fs afero.Fs, targetDir string, suffix string, skipEmptyFile b
 func ListSuffixed(fs afero.Fs, targetDir string, suffix string, skipEmptyFile bool) (map[string]string, error) {
 	fiList, err := afero.ReadDir(fs, targetDir)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to read directory: %s", targetDir)
+		return nil, errors.Wrapf(err, "read directory: %s", targetDir)
 	}
 
 	extLen := len(suffix)
@@ -476,7 +479,7 @@ func TempFileP(fs afero.Fs, pattern string) string {
 func TempFile(fs afero.Fs, pattern string) (string, error) {
 	f, err := afero.TempFile(fs, "", pattern)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to create temporary file")
+		return "", errors.Wrap(err, "create temporary file")
 	}
 	r := f.Name()
 	f.Close()

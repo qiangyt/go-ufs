@@ -36,7 +36,7 @@ func EnvironMap(overrides map[string]any) (map[string]string, error) {
 	envs := JoinedLines(os.Environ()...)
 	r, err := godotenv.Unmarshal(envs)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse OS environments")
+		return nil, errors.Wrapf(err, "parse OS environments")
 	}
 
 	if len(overrides) > 0 {
@@ -91,7 +91,7 @@ func EnvSubst(input string, env map[string]any) (string, error) {
 	parser := parse.New("tmp", envList, &restr)
 	r, err := parser.Parse(input)
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to envsubst the text: %s", input)
+		return "", errors.Wrapf(err, "envsubst the text: %s", input)
 	}
 	return r, nil
 }
@@ -131,11 +131,11 @@ func ExecutableP() string {
 func Executable() (string, error) {
 	r, err := os.Executable()
 	if err != nil {
-		return "", errors.Wrap(err, "failed to get the path name of the executable file")
+		return "", errors.Wrap(err, "get the path name of the executable file")
 	}
 	r, err = filepath.EvalSymlinks(r)
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to evaluate the symbol linke of the executable file: %s", r)
+		return "", errors.Wrapf(err, "evaluate the symbol linke of the executable file: %s", r)
 	}
 	return r, nil
 }
@@ -151,7 +151,7 @@ func WorkingDirectoryP() string {
 func WorkingDirectory() (string, error) {
 	r, err := os.Getwd()
 	if err != nil {
-		return "", errors.Wrap(err, "failed to get working directory")
+		return "", errors.Wrap(err, "get working directory")
 	}
 	return r, nil
 }

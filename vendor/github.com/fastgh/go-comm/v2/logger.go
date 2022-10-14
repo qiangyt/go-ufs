@@ -83,7 +83,7 @@ func NewLoggerP(console io.Writer, config LoggerConfig, fileName string) Logger 
 func NewLogger(console io.Writer, config LoggerConfig, fileName string) (Logger, error) {
 	logD := filepath.Dir(fileName)
 	if err := os.MkdirAll(logD, os.ModePerm); err != nil {
-		return nil, errors.Wrapf(err, "failed to create directory: %s", logD)
+		return nil, errors.Wrapf(err, "create directory: %s", logD)
 	}
 
 	// we use lumberjack instead of phuslu/log/FileWritter as said by phuslu/log that:

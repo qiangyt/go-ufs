@@ -11,7 +11,7 @@ import (
 func HostnameP() string {
 	r, err := Hostname()
 	if err != nil {
-		panic(errors.Wrapf(err, "failed to get hostname"))
+		panic(errors.Wrapf(err, "get hostname"))
 	}
 	return r
 }
@@ -31,7 +31,7 @@ func BroadcastInterfacesP(dump bool) []net.Interface {
 func BroadcastInterfaces(dump bool) ([]net.Interface, error) {
 	netIfs, err := net.Interfaces()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get network interfaces")
+		return nil, errors.Wrap(err, "get network interfaces")
 	}
 
 	r := make([]net.Interface, 0, len(netIfs))
@@ -69,7 +69,7 @@ func BroadcastIpWithInterface(intf net.Interface) (net.IP, error) {
 	// intf.MulticastAddrs()
 	addrs, err := intf.Addrs()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get addresses for interface: %s", intf.Name)
+		return nil, errors.Wrapf(err, "get addresses for interface: %s", intf.Name)
 	}
 
 	for _, addr := range addrs {

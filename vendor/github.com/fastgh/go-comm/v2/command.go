@@ -3,7 +3,6 @@ package comm
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -19,7 +18,8 @@ type FnInput func() string
 type CommandOutputKind byte
 
 const (
-	COMMAND_OUTPUT_KIND_TEXT CommandOutputKind = iota
+	_ CommandOutputKind = iota
+	COMMAND_OUTPUT_KIND_TEXT
 	COMMAND_OUTPUT_KIND_VARS
 	COMMAND_OUTPUT_KIND_JSON
 )
@@ -49,7 +49,7 @@ func ParseCommandOutput(outputText string) (CommandOutput, error) {
 
 		err := json.Unmarshal([]byte(jsonBody), &r.Json)
 		if err != nil {
-			return nil, errors.Wrapf(err, "invalid json: %s"+jsonBody)
+			return nil, errors.Wrapf(err, "json: %s"+jsonBody)
 		}
 
 		r.Kind = COMMAND_OUTPUT_KIND_JSON
@@ -175,7 +175,7 @@ func RunCommandNoInput(vars map[string]any, dir string, cmd string, args ...stri
 	b, err := _cmd.Output()
 	if err != nil {
 		cli := strings.Join(append([]string{cmd}, args...), " ")
-		return nil, errors.Wrapf(err, "failed to get output for command '%s'", cli)
+		return nil, errors.Wrapf(err, "get output for command '%s'", cli)
 	}
 
 	return ParseCommandOutput(cast.ToString(b))
@@ -183,6 +183,10 @@ func RunCommandNoInput(vars map[string]any, dir string, cmd string, args ...stri
 
 func RunCommandWithInput(vars map[string]any, dir string, cmd string, args ...string) func(...string) (CommandOutput, error) {
 	return func(input ...string) (CommandOutput, error) {
+		if IsSudoCommand(cmd) && len(input) > 0 {
+			cmd = InstrumentSudoCommand(cmd)
+		}
+
 		cli := cmd + " " + strings.Join(args, " ")
 
 		_cmd, err := newExecCommand(vars, dir, cmd, args...)
@@ -192,7 +196,7 @@ func RunCommandWithInput(vars map[string]any, dir string, cmd string, args ...st
 
 		stdin, err := _cmd.StdinPipe()
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to open stdin for command '%s'", cli)
+			return nil, errors.Wrapf(err, "open stdin for command '%s'", cli)
 		}
 		defer func() {
 			if stdin != nil {
@@ -203,14 +207,14 @@ func RunCommandWithInput(vars map[string]any, dir string, cmd string, args ...st
 
 		_, err = io.WriteString(stdin, strings.Join(input, " "))
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to write something to stdin")
+			return nil, errors.Wrap(err, "write something to stdin")
 		}
 		stdin.Close()
 		stdin = nil
 
 		b, err := _cmd.Output()
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get output for command '%s'", cli)
+			return nil, errors.Wrapf(err, "get output for command '%s'", cli)
 		}
 
 		return ParseCommandOutput(cast.ToString(b))
@@ -221,17 +225,27 @@ func IsSudoCommand(cmd string) bool {
 	return strings.HasPrefix(cmd, "sudo ")
 }
 
-func InputSudoCommandP(passwordInput FnInput) io.Reader {
-	r, err := InputSudoCommand(passwordInput)
-	if err != nil {
-		panic(err)
+func InputSudoPassword(passwordInput FnInput) string {
+	if passwordInput == nil {
+		return ""
+	}
+
+	r := passwordInput()
+	if len(r) == 0 {
+		return ""
 	}
 	return r
 }
 
-func InputSudoCommand(passwordInput FnInput) (io.Reader, error) {
-	if passwordInput == nil {
-		return nil, fmt.Errorf("requires password input")
+func InstrumentSudoCommand(cmd string) string {
+	if !IsSudoCommand(cmd) {
+		return cmd
 	}
-	return strings.NewReader(passwordInput()), nil
+
+	if strings.Contains(cmd, "-S") || strings.Contains(cmd, "--stdin") {
+		return cmd
+	}
+
+	noSudoCmd := cmd[len("sudo "):]
+	return "sudo --stdin " + noSudoCmd
 }

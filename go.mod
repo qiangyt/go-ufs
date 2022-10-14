@@ -3,7 +3,7 @@ module github.com/fastgh/go-ufs
 go 1.18
 
 require (
-	github.com/fastgh/go-comm/v2 v2.0.2
+	github.com/fastgh/go-comm/v2 v2.1.6
 	github.com/golang/mock v1.4.4
 	github.com/goodsru/go-universal-network-adapter v1.1.2
 	github.com/mitchellh/go-homedir v1.1.0
@@ -21,6 +21,7 @@ require (
 	github.com/dchest/jsmin v0.0.0-20220218165748-59f39799265f // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fastgh/go-event v1.0.4 // indirect
+	github.com/iancoleman/orderedmap v0.2.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/joho/godotenv v1.4.0 // indirect
 	github.com/josephspurrier/goversioninfo v1.4.0 // indirect

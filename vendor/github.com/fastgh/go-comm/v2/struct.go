@@ -18,7 +18,7 @@ func Map2StructP(src map[string]any, dest any) {
 
 func Map2Struct(src map[string]any, dest any) error {
 	if err := mapstruct.Map2Struct(src, dest); err != nil {
-		return errors.Wrap(err, "failed to convert map to struct")
+		return errors.Wrap(err, "convert map to struct")
 	}
 	return nil
 }

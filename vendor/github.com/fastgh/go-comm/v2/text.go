@@ -19,12 +19,12 @@ func RenderWithTemplateP(w io.Writer, name string, tmpl string, data map[string]
 func RenderWithTemplate(w io.Writer, name string, tmpl string, data map[string]any) error {
 	t, err := template.New(name).Parse(tmpl)
 	if err != nil {
-		return errors.Wrapf(err, "failed to parse template %s: %s", name, tmpl)
+		return errors.Wrapf(err, "parse template %s: %s", name, tmpl)
 	}
 
 	err = t.Execute(w, data)
 	if err != nil {
-		return errors.Wrapf(err, "failed to render template %s: %v", name, data)
+		return errors.Wrapf(err, "render template %s: %v", name, data)
 	}
 	return nil
 }
@@ -85,9 +85,9 @@ func ToYaml(hint string, me any) (string, error) {
 	r, err := yaml.Marshal(me)
 	if err != nil {
 		if len(hint) > 0 {
-			return "", errors.Wrapf(err, "failed to marshal %s to yaml", hint)
+			return "", errors.Wrapf(err, "marshal %s to yaml", hint)
 		} else {
-			return "", errors.Wrapf(err, "failed to marshal to yaml")
+			return "", errors.Wrapf(err, "marshal to yaml")
 		}
 	}
 	return string(r), nil
@@ -137,7 +137,7 @@ func SubstVars(m map[string]any, parentVars map[string]any, keysToSkip ...string
 				/*vYaml := ToYaml("", v)
 				vYaml = RenderAsTemplate(vYaml, newVars)
 				if err := yaml.Unmarshal([]byte(vYaml), &v); err != nil {
-					panic(errors.Wrapf(err, "failed to parse yaml: %s", vYaml))
+					panic(errors.Wrapf(err, "parse yaml: %s", vYaml))
 				}*/
 				mapNoVars[k] = v
 			}
@@ -155,7 +155,7 @@ func SubstVars(m map[string]any, parentVars map[string]any, keysToSkip ...string
 
 	r := map[string]any{}
 	if err := yaml.Unmarshal([]byte(yamlNoVars), &r); err != nil {
-		return nil, errors.Wrapf(err, "failed to parse yaml: %s", yamlNoVars)
+		return nil, errors.Wrapf(err, "parse yaml: %s", yamlNoVars)
 	}
 	r["vars"] = newVars
 

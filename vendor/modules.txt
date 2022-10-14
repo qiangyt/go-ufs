@@ -71,7 +71,7 @@ github.com/emirpasic/gods/containers
 github.com/emirpasic/gods/sets
 github.com/emirpasic/gods/sets/hashset
 github.com/emirpasic/gods/utils
-# github.com/fastgh/go-comm/v2 v2.0.2
+# github.com/fastgh/go-comm/v2 v2.1.6
 ## explicit; go 1.18
 github.com/fastgh/go-comm/v2
 # github.com/fastgh/go-event v1.0.4
@@ -90,6 +90,9 @@ github.com/goodsru/go-universal-network-adapter/services/downloader/ftp
 github.com/goodsru/go-universal-network-adapter/services/downloader/http
 github.com/goodsru/go-universal-network-adapter/services/downloader/s3
 github.com/goodsru/go-universal-network-adapter/services/downloader/sftp
+# github.com/iancoleman/orderedmap v0.2.0
+## explicit
+github.com/iancoleman/orderedmap
 # github.com/jmespath/go-jmespath v0.4.0
 ## explicit; go 1.14
 github.com/jmespath/go-jmespath

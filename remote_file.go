@@ -17,12 +17,6 @@ type RemoteFileT struct {
 
 type RemoteFile = *RemoteFileT
 
-type RemoteFileContentT struct {
-	backend *models.RemoteFileContent
-}
-
-type RemoteFileContent = *RemoteFileContentT
-
 func init() {
 	_uniNwAdapter = services.NewUniversalNetworkAdapter()
 }
@@ -38,7 +32,7 @@ func NewRemoteFileP(url string, credentials Credentials, timeout time.Duration) 
 func NewRemoteFile(url string, credentials Credentials, timeout time.Duration) (RemoteFile, error) {
 	remoteFile, err := models.NewRemoteFile(models.NewDestination(url, credentials, &timeout))
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to new remote file object")
+		return nil, errors.Wrapf(err, "new remote file object")
 	}
 
 	return &RemoteFileT{remoteFile}, nil
@@ -93,7 +87,7 @@ func (me RemoteFile) DownloadP() Content {
 func (me RemoteFile) Download() (Content, error) {
 	r, err := _uniNwAdapter.Download(me.backend)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to download %s", me.Url())
+		return nil, errors.Wrapf(err, "download %s", me.Url())
 	}
 
 	return r, nil

@@ -207,6 +207,23 @@ func MapFromYamlFile(fs afero.Fs, path string, envsubt bool) (map[string]any, er
 	return r, nil
 }
 
+func MapFromYamlP(yamlText string, envsubt bool) map[string]any {
+	r, err := MapFromYaml(yamlText, envsubt)
+	if err != nil {
+		panic(err)
+	}
+	return r
+}
+
+func MapFromYaml(yamlText string, envsubt bool) (map[string]any, error) {
+	r := map[string]any{}
+	if err := FromYaml(yamlText, envsubt, &r); err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
+
 func FromYamlFileP(fs afero.Fs, path string, envsubt bool, result any) {
 	if err := FromYamlFile(fs, path, envsubt, result); err != nil {
 		panic(err)
@@ -219,16 +236,28 @@ func FromYamlFile(fs afero.Fs, path string, envsubt bool, result any) error {
 		return err
 	}
 
+	if err := FromYaml(yamlText, envsubt, result); err != nil {
+		return errors.Wrapf(err, "parse yaml file: %s", path)
+	}
+	return nil
+}
+
+func FromYamlP(yamlText string, envsubt bool, result any) {
+	if err := FromYaml(yamlText, envsubt, result); err != nil {
+		panic(err)
+	}
+}
+
+func FromYaml(yamlText string, envsubt bool, result any) (err error) {
 	if envsubt {
 		yamlText, err = comm.EnvSubst(yamlText, nil)
 		if err != nil {
-			return err
+			return
 		}
-
 	}
 
-	if err := yaml.Unmarshal([]byte(yamlText), result); err != nil {
-		return errors.Wrapf(err, "failed to parse yaml file: %s\n\n%s", path, yamlText)
+	if err = yaml.Unmarshal([]byte(yamlText), result); err != nil {
+		return errors.Wrapf(err, "parse yaml: \n\n%s", yamlText)
 	}
 	return nil
 }

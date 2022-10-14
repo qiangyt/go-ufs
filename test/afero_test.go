@@ -18,7 +18,8 @@ func Test_CopyFile_happy(t *testing.T) {
 	ufs.WriteTextP(fs, "/Test_CopyFile_happy/c1/src.txt", "hello")
 
 	ufs.MkdirP(fs, "/Test_CopyFile_happy/c2")
-	ufs.CopyFile(fs, "/Test_CopyFile_happy/c1/src.txt", "/Test_CopyFile_happy/c2/dest.txt")
+	_, err := ufs.CopyFile(fs, "/Test_CopyFile_happy/c1/src.txt", "/Test_CopyFile_happy/c2/dest.txt")
+	a.NoError(err)
 
 	actual := ufs.ReadTextP(fs, "/Test_CopyFile_happy/c2/dest.txt")
 	a.Equal("hello", actual)
