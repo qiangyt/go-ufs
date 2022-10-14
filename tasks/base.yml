@@ -5,8 +5,8 @@ tasks:
     cmds:
       - task: rm
         vars:
-           TARGET: pkg/{{.MOCK_PKG}}/test/{{.MOCK_DEST_FILE}}
-      - mockgen -destination pkg/{{.MOCK_PKG}}/test/{{.MOCK_DEST_FILE}} -package test --build_flags=--mod=mod {{.PROJECT_PKG}}/pkg/{{.MOCK_PKG}} {{.MOCK_INTERFACE}}
+           TARGET: "test/{{.MOCK_DEST_FILE}}"
+      - mockgen -destination test/{{.MOCK_DEST_FILE}} -package test --build_flags=--mod=mod {{.PROJECT_PKG}} {{.MOCK_INTERFACE}}
   rm:
     cmds:
       - echo $PATH

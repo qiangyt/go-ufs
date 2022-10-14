@@ -65,17 +65,32 @@ func (mr *MockFileMockRecorder) Dir() *gomock.Call {
 }
 
 // Download mocks base method.
-func (m *MockFile) Download() *models.RemoteFileContent {
+func (m *MockFile) Download() (*models.RemoteFileContent, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Download")
 	ret0, _ := ret[0].(*models.RemoteFileContent)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Download indicates an expected call of Download.
 func (mr *MockFileMockRecorder) Download() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Download", reflect.TypeOf((*MockFile)(nil).Download))
+}
+
+// DownloadP mocks base method.
+func (m *MockFile) DownloadP() *models.RemoteFileContent {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DownloadP")
+	ret0, _ := ret[0].(*models.RemoteFileContent)
+	return ret0
+}
+
+// DownloadP indicates an expected call of DownloadP.
+func (mr *MockFileMockRecorder) DownloadP() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DownloadP", reflect.TypeOf((*MockFile)(nil).DownloadP))
 }
 
 // Name mocks base method.
