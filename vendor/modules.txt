@@ -167,7 +167,7 @@ github.com/pkg/sftp
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
-# github.com/qiangyt/go-comm/v2 v2.4.9
+# github.com/qiangyt/go-comm/v2 v2.5.0
 ## explicit; go 1.25
 github.com/qiangyt/go-comm/v2
 # github.com/qiangyt/go-event v1.1.1
@@ -204,6 +204,12 @@ github.com/stretchr/testify/require
 # github.com/tiaotiao/mapstruct v0.0.0-20170819235540-950894f801ed
 ## explicit
 github.com/tiaotiao/mapstruct
+# github.com/traefik/yaegi v0.16.1
+## explicit; go 1.21
+github.com/traefik/yaegi/internal/unsafe2
+github.com/traefik/yaegi/interp
+github.com/traefik/yaegi/stdlib
+github.com/traefik/yaegi/stdlib/generic
 # go.uber.org/atomic v1.10.0
 ## explicit; go 1.18
 go.uber.org/atomic

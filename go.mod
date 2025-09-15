@@ -9,7 +9,7 @@ require (
 	github.com/goodsru/go-universal-network-adapter v1.1.3-0.20221018065357-179acf84a4df
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
-	github.com/qiangyt/go-comm/v2 v2.4.9
+	github.com/qiangyt/go-comm/v2 v2.5.0
 	github.com/spf13/afero v1.15.0
 	github.com/stretchr/testify v1.11.1
 	gopkg.in/yaml.v3 v3.0.1
@@ -52,6 +52,7 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tiaotiao/mapstruct v0.0.0-20170819235540-950894f801ed // indirect
+	github.com/traefik/yaegi v0.16.1 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	golang.org/x/crypto v0.33.0 // indirect
 	golang.org/x/image v0.20.0 // indirect
