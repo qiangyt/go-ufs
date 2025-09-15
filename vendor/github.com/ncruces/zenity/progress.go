@@ -31,7 +31,7 @@ type ProgressDialog interface {
 	Done() <-chan struct{}
 }
 
-// MaxValue returns an Option to set the maximum value (Windows and macOS only).
+// MaxValue returns an Option to set the maximum value.
 // The default maximum value is 100.
 func MaxValue(value int) Option {
 	return funcOption(func(o *options) { o.maxValue = value })
@@ -45,6 +45,11 @@ func Pulsate() Option {
 // NoCancel returns an Option to hide the Cancel button (Windows and Unix only).
 func NoCancel() Option {
 	return funcOption(func(o *options) { o.noCancel = true })
+}
+
+// AutoClose returns an Option to dismiss the dialog when 100% has been reached.
+func AutoClose() Option {
+	return funcOption(func(o *options) { o.autoClose = true })
 }
 
 // TimeRemaining returns an Option to estimate when progress will reach 100% (Unix only).

@@ -3,8 +3,8 @@ package log
 import (
 	"io"
 	"net"
+	"net/netip"
 	"os"
-	"runtime"
 	"strconv"
 	"sync"
 )
@@ -23,7 +23,7 @@ type TSVEntry struct {
 }
 
 var tepool = sync.Pool{
-	New: func() interface{} {
+	New: func() any {
 		return new(TSVEntry)
 	},
 }
@@ -114,13 +114,12 @@ func (e *TSVEntry) TimestampMS() *TSVEntry {
 
 // Caller adds the file:line of to the entry.
 func (e *TSVEntry) Caller(depth int) *TSVEntry {
-	var rpc [1]uintptr
-	i := callers(depth, rpc[:])
+	var pc uintptr
+	i := caller1(depth, &pc, 1, 1)
 	if i < 1 {
 		return e
 	}
-	frame, _ := runtime.CallersFrames(rpc[:]).Next()
-	file := frame.File
+	file, line := pcFileLine(pc)
 	for i = len(file) - 1; i >= 0; i-- {
 		if file[i] == '/' {
 			break
@@ -131,17 +130,27 @@ func (e *TSVEntry) Caller(depth int) *TSVEntry {
 	}
 	e.buf = append(e.buf, file...)
 	e.buf = append(e.buf, ':')
-	e.buf = strconv.AppendInt(e.buf, int64(frame.Line), 10)
+	e.buf = strconv.AppendInt(e.buf, int64(line), 10)
 	e.buf = append(e.buf, e.sep)
 	return e
 }
 
-// Bool append the b as a bool to the entry.
+// Bool append the b as a bool to the entry, the value of output bool is 0 or 1.
 func (e *TSVEntry) Bool(b bool) *TSVEntry {
 	if b {
 		e.buf = append(e.buf, '1', e.sep)
 	} else {
 		e.buf = append(e.buf, '0', e.sep)
+	}
+	return e
+}
+
+// BoolString append the b as a bool to the entry, the value of output bool is false or true.
+func (e *TSVEntry) BoolString(b bool) *TSVEntry {
+	if b {
+		e.buf = append(e.buf, 't', 'r', 'u', 'e', e.sep)
+	} else {
+		e.buf = append(e.buf, 'f', 'a', 'l', 's', 'e', e.sep)
 	}
 	return e
 }
@@ -245,6 +254,36 @@ func (e *TSVEntry) IPAddr(ip net.IP) *TSVEntry {
 	} else {
 		e.buf = append(e.buf, ip.String()...)
 	}
+	e.buf = append(e.buf, e.sep)
+	return e
+}
+
+// NetIPAddr adds IPv4 or IPv6 Address to the entry.
+func (e *TSVEntry) NetIPAddr(ip netip.Addr) *TSVEntry {
+	e.buf = ip.AppendTo(e.buf)
+	e.buf = append(e.buf, e.sep)
+	return e
+}
+
+// NetIPAddrPort adds IPv4 or IPv6 with Port Address to the entry.
+func (e *TSVEntry) NetIPAddrPort(ipPort netip.AddrPort) *TSVEntry {
+	e.buf = ipPort.AppendTo(e.buf)
+	e.buf = append(e.buf, e.sep)
+	return e
+}
+
+// NetIPPrefix adds IPv4 or IPv6 Prefix (address and mask) to the entry.
+func (e *TSVEntry) NetIPPrefix(pfx netip.Prefix) *TSVEntry {
+	e.buf = pfx.AppendTo(e.buf)
+	e.buf = append(e.buf, e.sep)
+	return e
+}
+
+// Encode encodes bytes using enc.AppendEncode to the entry.
+func (e *TSVEntry) Encode(key string, val []byte, enc interface {
+	AppendEncode(dst, src []byte) []byte
+}) *TSVEntry {
+	e.buf = enc.AppendEncode(e.buf, val)
 	e.buf = append(e.buf, e.sep)
 	return e
 }

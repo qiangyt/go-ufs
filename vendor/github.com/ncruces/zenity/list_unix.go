@@ -13,11 +13,14 @@ func list(text string, items []string, opts options) (string, error) {
 	if opts.listKind == radioListKind {
 		args = append(args, "--radiolist", "--column=", "--column=")
 		for _, i := range items {
-			args = append(args, i, i)
+			args = append(args, "", i)
 		}
 	} else {
 		args = append(args, "--column=")
 		args = append(args, items...)
+	}
+	if opts.midSearch {
+		args = append(args, "--mid-search")
 	}
 
 	out, err := zenutil.Run(opts.ctx, args)
@@ -33,7 +36,7 @@ func listMultiple(text string, items []string, opts options) ([]string, error) {
 	if opts.listKind == checkListKind {
 		args = append(args, "--checklist", "--column=", "--column=")
 		for _, i := range items {
-			args = append(args, i, i)
+			args = append(args, "", i)
 		}
 	} else {
 		args = append(args, "--column=")

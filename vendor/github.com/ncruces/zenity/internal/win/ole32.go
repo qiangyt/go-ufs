@@ -23,7 +23,9 @@ const (
 	CLSCTX_ALL            = windows.CLSCTX_INPROC_SERVER | windows.CLSCTX_INPROC_HANDLER | windows.CLSCTX_LOCAL_SERVER | windows.CLSCTX_REMOTE_SERVER
 
 	E_CANCELED         = windows.ERROR_CANCELLED | windows.FACILITY_WIN32<<16 | 0x80000000
+	E_TIMEOUT          = windows.ERROR_TIMEOUT | windows.FACILITY_WIN32<<16 | 0x80000000
 	RPC_E_CHANGED_MODE = syscall.Errno(windows.RPC_E_CHANGED_MODE)
+	S_FALSE            = syscall.Errno(windows.S_FALSE)
 )
 
 func CoInitializeEx(reserved uintptr, coInit uint32) error {
@@ -50,24 +52,16 @@ func (u *IUnknown) Release() {
 
 //go:uintptrescapes
 func (u *IUnknown) call(trap uintptr, a ...uintptr) (r1, r2 uintptr, lastErr error) {
-	switch nargs := uintptr(len(a)); nargs {
-	case 0:
-		return syscall.Syscall(trap, nargs+1, uintptr(unsafe.Pointer(u)), 0, 0)
-	case 1:
-		return syscall.Syscall(trap, nargs+1, uintptr(unsafe.Pointer(u)), a[0], 0)
-	case 2:
-		return syscall.Syscall(trap, nargs+1, uintptr(unsafe.Pointer(u)), a[0], a[1])
-	default:
-		panic("COM call with too many arguments.")
-	}
+	return syscall.SyscallN(trap, append([]uintptr{uintptr(unsafe.Pointer(u))}, a...)...)
 }
 
 // https://github.com/wine-mirror/wine/blob/master/include/objidl.idl
 
 type IBindCtx struct{ IUnknown }
 
-//sys CoCreateInstance(clsid uintptr, unkOuter *IUnknown, clsContext int32, iid uintptr, address unsafe.Pointer) (res error) = ole32.CoCreateInstance
+//sys CoCreateInstance(clsid *GUID, unkOuter *IUnknown, clsContext int32, iid *GUID, address unsafe.Pointer) (res error) = ole32.CoCreateInstance
 
-func uuid(s string) uintptr {
-	return (*reflect.StringHeader)(unsafe.Pointer(&s)).Data
+func guid(s string) *GUID {
+	// TODO: use unsafe.StringData after 1.20
+	return (*GUID)(unsafe.Pointer((*reflect.StringHeader)(unsafe.Pointer(&s)).Data))
 }

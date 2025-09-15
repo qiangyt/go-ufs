@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 )
@@ -19,6 +20,7 @@ type progressDialog struct {
 	ctx     context.Context
 	cmd     *exec.Cmd
 	max     int
+	close   bool
 	percent bool
 	closed  int32
 	lines   chan string
@@ -40,6 +42,9 @@ func (d *progressDialog) Text(text string) error {
 }
 
 func (d *progressDialog) Value(value int) error {
+	if value >= d.max && d.close {
+		return d.Close()
+	}
 	if d.percent {
 		return d.send(strconv.FormatFloat(100*float64(value)/float64(d.max), 'f', -1, 64))
 	} else {
@@ -78,8 +83,7 @@ func (d *progressDialog) wait(extra *string, out *bytes.Buffer) {
 		case eerr.ExitCode() == -1 && atomic.LoadInt32(&d.closed) != 0:
 			err = nil
 		case eerr.ExitCode() == 1:
-			out := bytes.TrimSuffix(out.Bytes(), []byte{'\n'})
-			if extra != nil && *extra == string(out) {
+			if extra != nil && *extra == strings.TrimSuffix(out.String(), "\n") {
 				err = ErrExtraButton
 			} else {
 				err = ErrCanceled

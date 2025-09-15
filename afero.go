@@ -11,7 +11,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 
-	"github.com/fastgh/go-comm/v2"
+	"github.com/qiangyt/go-comm/v2"
 	"github.com/spf13/afero"
 )
 
@@ -391,13 +391,11 @@ func ExpandHomePath(path string) (string, error) {
 }
 
 func UserHomeDirP() string {
-
 	r, err := UserHomeDir()
 	if err != nil {
 		panic(err)
 	}
 	return r
-
 }
 
 func UserHomeDir() (string, error) {

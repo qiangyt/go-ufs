@@ -31,7 +31,7 @@ func ListMultiple(text string, items []string, options ...Option) ([]string, err
 //
 // May return: ErrCanceled, ErrUnsupported.
 func ListMultipleItems(text string, items ...string) ([]string, error) {
-	return ListMultiple(text, items)
+	return ListMultiple(text, items, CheckList())
 }
 
 // CheckList returns an Option to show check boxes (Unix only).
@@ -52,12 +52,18 @@ const (
 	radioListKind
 )
 
-// DefaultItems returns an Option to set the items to initially select (macOS only).
+// MidSearch returns an Option to change list search to find text in the middle,
+// not on the beginning (Unix only).
+func MidSearch() Option {
+	return funcOption(func(o *options) { o.midSearch = true })
+}
+
+// DefaultItems returns an Option to set the items to initially select (Windows and macOS only).
 func DefaultItems(items ...string) Option {
 	return funcOption(func(o *options) { o.defaultItems = items })
 }
 
-// DisallowEmpty returns an Option to not allow zero items to be selected (macOS only).
+// DisallowEmpty returns an Option to not allow zero items to be selected (Windows and macOS only).
 func DisallowEmpty() Option {
 	return funcOption(func(o *options) { o.disallowEmpty = true })
 }

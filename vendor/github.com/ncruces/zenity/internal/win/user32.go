@@ -37,6 +37,7 @@ const (
 	MB_DEFBUTTON1        = windows.MB_DEFBUTTON1
 	MB_DEFBUTTON2        = windows.MB_DEFBUTTON2
 	MB_DEFBUTTON3        = windows.MB_DEFBUTTON3
+	MB_SETFOREGROUND     = windows.MB_SETFOREGROUND
 
 	// Window messages
 	WM_DESTROY     = 0x0002
@@ -52,6 +53,8 @@ const (
 	WM_USER        = 0x0400
 	EM_SETSEL      = 0x00b1
 	LB_ADDSTRING   = 0x0180
+	LB_SETSEL      = 0x0185
+	LB_SETCURSEL   = 0x0186
 	LB_GETCURSEL   = 0x0188
 	LB_GETSELCOUNT = 0x0190
 	LB_GETSELITEMS = 0x0191
@@ -140,6 +143,7 @@ const (
 	ES_AUTOHSCROLL = 0x0080
 
 	// List box control styles
+	LBS_NOTIFY      = 0x0001
 	LBS_EXTENDEDSEL = 0x0800
 
 	// Month calendar control styles
@@ -265,13 +269,16 @@ func GetWindowThreadProcessId(hwnd HWND, pid *uint32) (tid uint32, err error) {
 
 func GetWindowText(wnd HWND) string {
 	len, _ := getWindowTextLength(wnd)
+	if len == 0 {
+		return ""
+	}
 	buf := make([]uint16, len+1)
 	getWindowText(wnd, &buf[0], len+1)
-	return syscall.UTF16ToString(buf)
+	return windows.UTF16ToString(buf)
 }
 
 func SendMessagePointer(wnd HWND, msg uint32, wparam uintptr, lparam unsafe.Pointer) (ret uintptr) {
-	r0, _, _ := syscall.Syscall6(procSendMessageW.Addr(), 4, uintptr(wnd), uintptr(msg), uintptr(wparam), uintptr(lparam), 0, 0)
+	r0, _, _ := syscall.SyscallN(procSendMessageW.Addr(), uintptr(wnd), uintptr(msg), uintptr(wparam), uintptr(lparam))
 	ret = uintptr(r0)
 	return
 }
@@ -290,7 +297,7 @@ func MessageLoop(wnd HWND) error {
 	isDialogMessage := procIsDialogMessageW.Addr()
 
 	for {
-		s, _, err := syscall.Syscall6(getMessage, 4, uintptr(msg), 0, 0, 0, 0, 0)
+		s, _, err := syscall.SyscallN(getMessage, uintptr(msg), 0, 0, 0)
 		if int32(s) == -1 {
 			return err
 		}
@@ -298,10 +305,10 @@ func MessageLoop(wnd HWND) error {
 			return nil
 		}
 
-		s, _, _ = syscall.Syscall(isDialogMessage, 2, uintptr(wnd), uintptr(msg), 0)
+		s, _, _ = syscall.SyscallN(isDialogMessage, uintptr(wnd), uintptr(msg))
 		if s == 0 {
-			syscall.Syscall(translateMessage, 1, uintptr(msg), 0, 0)
-			syscall.Syscall(dispatchMessage, 1, uintptr(msg), 0, 0)
+			syscall.SyscallN(translateMessage, uintptr(msg))
+			syscall.SyscallN(dispatchMessage, uintptr(msg))
 		}
 	}
 }

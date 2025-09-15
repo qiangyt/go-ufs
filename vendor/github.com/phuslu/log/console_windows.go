@@ -1,5 +1,4 @@
 //go:build windows
-// +build windows
 
 package log
 
@@ -22,9 +21,9 @@ func isTerminal(fd uintptr, _, _ string) bool {
 }
 
 var (
-	kernel32                = syscall.NewLazyDLL("kernel32.dll")
-	setConsoleMode          = kernel32.NewProc("SetConsoleMode").Call
-	setConsoleTextAttribute = kernel32.NewProc("SetConsoleTextAttribute").Call
+	kernel32                    = syscall.NewLazyDLL("kernel32.dll")
+	procSetConsoleMode          = kernel32.NewProc("SetConsoleMode").Call
+	procSetConsoleTextAttribute = kernel32.NewProc("SetConsoleTextAttribute").Call
 
 	muConsole   sync.Mutex
 	onceConsole sync.Once
@@ -34,6 +33,8 @@ var (
 // WriteEntry implements Writer
 func (w *ConsoleWriter) WriteEntry(e *Entry) (n int, err error) {
 	onceConsole.Do(func() { isvt = isVirtualTerminal() })
+	muConsole.Lock()
+	defer muConsole.Unlock()
 
 	out := w.Writer
 	if out == nil {
@@ -48,9 +49,6 @@ func (w *ConsoleWriter) WriteEntry(e *Entry) (n int, err error) {
 }
 
 func (w *ConsoleWriter) writew(out io.Writer, p []byte) (n int, err error) {
-	muConsole.Lock()
-	defer muConsole.Unlock()
-
 	b := bbpool.Get().(*bb)
 	b.B = b.B[:0]
 	defer bbpool.Put(b)
@@ -75,8 +73,8 @@ func (w *ConsoleWriter) writew(out io.Writer, p []byte) (n int, err error) {
 	// color print
 	var cprint = func(color uintptr, b []byte) {
 		if color != White {
-			setConsoleTextAttribute(uintptr(syscall.Stderr), color)
-			defer setConsoleTextAttribute(uintptr(syscall.Stderr), White)
+			procSetConsoleTextAttribute(uintptr(syscall.Stderr), color)
+			defer procSetConsoleTextAttribute(uintptr(syscall.Stderr), White)
 		}
 		var i int
 		i, err = out.Write(b)
@@ -184,6 +182,6 @@ func isVirtualTerminal() bool {
 	}
 
 	// enable ENABLE_VIRTUAL_TERMINAL_PROCESSING
-	ret, _, _ := setConsoleMode(uintptr(syscall.Stderr), uintptr(n|0x4))
+	ret, _, _ := procSetConsoleMode(uintptr(syscall.Stderr), uintptr(n|0x4))
 	return ret != 0
 }

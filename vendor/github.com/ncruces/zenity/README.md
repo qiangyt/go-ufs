@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/image)](https://pkg.go.dev/github.com/ncruces/zenity)
 [![Go Report](https://goreportcard.com/badge/github.com/ncruces/zenity)](https://goreportcard.com/report/github.com/ncruces/zenity)
-[![Go Cover](https://gocover.io/_badge/github.com/ncruces/zenity)](https://gocover.io/github.com/ncruces/zenity)
+[![Go Coverage](https://github.com/ncruces/zenity/wiki/coverage.svg)](https://raw.githack.com/wiki/ncruces/zenity/coverage.html)
 [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go)
 
 This repo includes:
@@ -73,7 +73,15 @@ and [man page](https://linux.die.net/man/1/zenity) of that command.
 * on macOS:
   * only dependency is `osascript`
 * on other Unixes:
-  * wraps either one of `zenity`, `qarma`, `matedialog`
+  * wraps either one of `zenity`, `matedialog`, [`qarma`](https://github.com/luebking/qarma)
+
+## Zenity wrappers
+
+Zenity wrappers for languages other than Go can benefit from our `zenity` command. On Unix (Linux, FreeBSD, etc) they can use the original tool, and on Windows/macOS they may use the command from this repo for portability.
+
+Examples:
+- NodeJS [`dialog-gui`](https://github.com/SnurfDev/dialog-gui) by [@SnurfDev](https://github.com/SnurfDev/dialog-gui)
+- Crystal [`zenity.cr`](https://github.com/kojix2/zenity.cr) by [@kojix2](https://github.com/kojix2/)
 
 ## Credits
 

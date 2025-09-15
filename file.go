@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fastgh/go-comm/v2"
 	"github.com/goodsru/go-universal-network-adapter/models"
 	"github.com/goodsru/go-universal-network-adapter/services"
 	"github.com/pkg/errors"
+	"github.com/qiangyt/go-comm/v2"
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v3"
 )
@@ -137,7 +137,7 @@ func DownloadBytes(logger comm.Logger, fallbackDir string, fs afero.Fs, url stri
 					logger.Warn().Err(fallbackErr).Str("url", url).Str("fallbackFilePath", fallbackFilePath).Msg("save fallback file failed")
 				}
 			}
-			return
+			return result, err
 		} else {
 			if logger != nil {
 				logger.Warn().Err(err).Str("url", url).Msg("fallbacking due to failed to download the file")
@@ -154,7 +154,7 @@ func DownloadBytes(logger comm.Logger, fallbackDir string, fs afero.Fs, url stri
 		}
 	}
 
-	return
+	return result, err
 }
 
 func downloadBytes(fs afero.Fs, url string, credentials Credentials, timeout time.Duration) ([]byte, error) {
@@ -252,7 +252,7 @@ func FromYaml(yamlText string, envsubt bool, result any) (err error) {
 	if envsubt {
 		yamlText, err = comm.EnvSubst(yamlText, nil)
 		if err != nil {
-			return
+			return err
 		}
 	}
 

@@ -12,9 +12,9 @@ import (
 func GetLockFilePid(fs afero.Fs, filename string) (pid int, err error) {
 	contents, err := afero.ReadFile(fs, filename)
 	if err != nil {
-		return
+		return pid, err
 	}
 
 	pid, err = strconv.Atoi(string(contents))
-	return
+	return pid, err
 }

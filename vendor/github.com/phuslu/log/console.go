@@ -16,7 +16,8 @@ func IsTerminal(fd uintptr) bool {
 // IMPORTANT: Don't use ConsoleWriter on critical path of a high concurrency and low latency application.
 //
 // Default output format:
-//     {Time} {Level} {Goid} {Caller} > {Message} {Key}={Value} {Key}={Value}
+//
+//	{Time} {Level} {Goid} {Caller} > {Message} {Key}={Value} {Key}={Value}
 //
 // Note: The performance of ConsoleWriter is not good enough, because it will
 // parses JSON input into structured records, then output in a specific order.
@@ -127,7 +128,7 @@ func (w *ConsoleWriter) format(out io.Writer, args *FormatterArgs) (n int, err e
 			if w.QuoteString && kv.ValueType == 's' {
 				kv.Value = strconv.Quote(kv.Value)
 			}
-			if kv.Key == "error" {
+			if kv.Key == "error" && kv.Value != "null" {
 				fmt.Fprintf(b, " %s%s=%s%s", Red, kv.Key, kv.Value, Reset)
 			} else {
 				fmt.Fprintf(b, " %s%s=%s%s%s", Cyan, kv.Key, Gray, kv.Value, Reset)
@@ -151,7 +152,10 @@ func (w *ConsoleWriter) format(out io.Writer, args *FormatterArgs) (n int, err e
 		// key and values
 		for _, kv := range args.KeyValues {
 			if w.QuoteString && kv.ValueType == 's' {
-				fmt.Fprintf(b, " %s=%s", kv.Key, strconv.Quote(kv.Value))
+				b.B = append(b.B, ' ')
+				b.B = append(b.B, kv.Key...)
+				b.B = append(b.B, '=')
+				b.B = strconv.AppendQuote(b.B, kv.Value)
 			} else {
 				fmt.Fprintf(b, " %s=%s", kv.Key, kv.Value)
 			}
@@ -162,16 +166,69 @@ func (w *ConsoleWriter) format(out io.Writer, args *FormatterArgs) (n int, err e
 		}
 	}
 
+	// add line break if needed
+	if b.B[len(b.B)-1] != '\n' {
+		b.B = append(b.B, '\n')
+	}
+
 	// stack
 	if args.Stack != "" {
-		b.B = append(b.B, '\n')
 		b.B = append(b.B, args.Stack...)
 		if args.Stack[len(args.Stack)-1] != '\n' {
 			b.B = append(b.B, '\n')
 		}
-	} else {
-		b.B = append(b.B, '\n')
 	}
+
+	return out.Write(b.B)
+}
+
+type LogfmtFormatter struct {
+	TimeField string
+}
+
+func (f LogfmtFormatter) Formatter(out io.Writer, args *FormatterArgs) (n int, err error) {
+	b := bbpool.Get().(*bb)
+	b.B = b.B[:0]
+	defer bbpool.Put(b)
+
+	fmt.Fprintf(b, "%s=%s ", f.TimeField, args.Time)
+	if args.Level != "" && args.Level[0] != '?' {
+		fmt.Fprintf(b, "level=%s ", args.Level)
+	}
+	if args.Caller != "" {
+		fmt.Fprintf(b, "goid=%s caller=", args.Goid)
+		b.B = strconv.AppendQuote(b.B, args.Caller)
+		b.B = append(b.B, ' ')
+	}
+	if args.Stack != "" {
+		b.B = append(b.B, "stack="...)
+		b.B = strconv.AppendQuote(b.B, args.Stack)
+		b.B = append(b.B, ' ')
+	}
+	// key and values
+	for _, kv := range args.KeyValues {
+		switch kv.ValueType {
+		case 't':
+			fmt.Fprintf(b, "%s ", kv.Key)
+		case 'f':
+			fmt.Fprintf(b, "%s=false ", kv.Key)
+		case 'n':
+			fmt.Fprintf(b, "%s=%s ", kv.Key, kv.Value)
+		case 'S':
+			fmt.Fprintf(b, "%s=%s ", kv.Key, kv.Value)
+		case 's':
+			fallthrough
+		default:
+			b.B = append(b.B, kv.Key...)
+			b.B = append(b.B, '=')
+			b.B = strconv.AppendQuote(b.B, kv.Value)
+			b.B = append(b.B, ' ')
+		}
+	}
+	// message
+	b.B = strconv.AppendQuote(b.B, args.Message)
+	b.B = append(b.B, '\n')
+
 	return out.Write(b.B)
 }
 

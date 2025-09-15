@@ -15,8 +15,7 @@ func calendar(text string, opts options) (t time.Time, err error) {
 		return
 	}
 	if opts.time != nil {
-		unix := opts.time.Unix()
-		data.Date = &unix
+		data.Date = ptr(opts.time.Unix())
 	}
 
 	if opts.title != nil {
@@ -24,9 +23,6 @@ func calendar(text string, opts options) (t time.Time, err error) {
 		data.Info = text
 	} else {
 		data.Text = text
-	}
-	if opts.attach != nil {
-		data.Application = opts.attach
 	}
 	if i, ok := opts.windowIcon.(string); ok {
 		data.WindowIcon = i

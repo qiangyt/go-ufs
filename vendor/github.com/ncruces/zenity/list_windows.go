@@ -21,27 +21,29 @@ func listMultiple(text string, items []string, opts options) ([]string, error) {
 
 func listDlg(text string, items []string, multiple bool, opts options) ([]string, error) {
 	if opts.title == nil {
-		opts.title = stringPtr("")
+		opts.title = ptr("")
 	}
 	if opts.okLabel == nil {
-		opts.okLabel = stringPtr("OK")
+		opts.okLabel = ptr("OK")
 	}
 	if opts.cancelLabel == nil {
-		opts.cancelLabel = stringPtr("Cancel")
+		opts.cancelLabel = ptr("Cancel")
 	}
 
 	dlg := &listDialog{
-		items:    items,
-		multiple: multiple,
+		items:         items,
+		multiple:      multiple,
+		disallowEmpty: opts.disallowEmpty,
 	}
 	return dlg.setup(text, opts)
 }
 
 type listDialog struct {
-	items    []string
-	multiple bool
-	out      []string
-	err      error
+	items         []string
+	multiple      bool
+	disallowEmpty bool
+	out           []string
+	err           error
 
 	wnd       win.HWND
 	textCtl   win.HWND
@@ -84,39 +86,49 @@ func (dlg *listDialog) setup(text string, opts options) ([]string, error) {
 		strptr("STATIC"), strptr(text), _WS_ZEN_LABEL,
 		12, 10, 241, 16, dlg.wnd, 0, instance, nil)
 
-	var flags uint32 = _WS_ZEN_CONTROL | win.WS_VSCROLL
+	var flags uint32 = _WS_ZEN_CONTROL | win.WS_VSCROLL | win.LBS_NOTIFY
 	if dlg.multiple {
 		flags |= win.LBS_EXTENDEDSEL
 	}
 	dlg.listCtl, _ = win.CreateWindowEx(win.WS_EX_CLIENTEDGE,
-		strptr("LISTBOX"), strptr(opts.entryText), flags,
+		strptr("LISTBOX"), nil, flags,
 		12, 30, 241, 164, dlg.wnd, 0, instance, nil)
 
 	dlg.okBtn, _ = win.CreateWindowEx(0,
-		strptr("BUTTON"), strptr(*opts.okLabel),
+		strptr("BUTTON"), strptr(quoteAccelerators(*opts.okLabel)),
 		_WS_ZEN_BUTTON|win.BS_DEFPUSHBUTTON,
 		12, 206, 75, 24, dlg.wnd, win.IDOK, instance, nil)
 	dlg.cancelBtn, _ = win.CreateWindowEx(0,
-		strptr("BUTTON"), strptr(*opts.cancelLabel),
+		strptr("BUTTON"), strptr(quoteAccelerators(*opts.cancelLabel)),
 		_WS_ZEN_BUTTON,
 		12, 206, 75, 24, dlg.wnd, win.IDCANCEL, instance, nil)
 	if opts.extraButton != nil {
 		dlg.extraBtn, _ = win.CreateWindowEx(0,
-			strptr("BUTTON"), strptr(*opts.extraButton),
+			strptr("BUTTON"), strptr(quoteAccelerators(*opts.extraButton)),
 			_WS_ZEN_BUTTON,
 			12, 206, 75, 24, dlg.wnd, win.IDNO, instance, nil)
 	}
 
-	for _, item := range dlg.items {
+	for i, item := range dlg.items {
 		win.SendMessagePointer(dlg.listCtl, win.LB_ADDSTRING, 0, unsafe.Pointer(strptr(item)))
+		for _, def := range opts.defaultItems {
+			if def == item {
+				if dlg.multiple {
+					win.SendMessage(dlg.listCtl, win.LB_SETSEL, 1, uintptr(i))
+				} else {
+					win.SendMessage(dlg.listCtl, win.LB_SETCURSEL, uintptr(i), 0)
+				}
+			}
+		}
 	}
 
+	dlg.update()
 	dlg.layout(getDPI(dlg.wnd))
 	centerWindow(dlg.wnd)
 	win.SetFocus(dlg.listCtl)
 	win.ShowWindow(dlg.wnd, win.SW_NORMAL)
 
-	if opts.ctx != nil {
+	if opts.ctx != nil && opts.ctx.Done() != nil {
 		wait := make(chan struct{})
 		defer close(wait)
 		go func() {
@@ -157,6 +169,20 @@ func (dlg *listDialog) layout(dpi dpi) {
 	}
 }
 
+func (dlg *listDialog) update() {
+	if dlg.disallowEmpty {
+		var enable bool
+		if dlg.multiple {
+			len := win.SendMessage(dlg.listCtl, win.LB_GETSELCOUNT, 0, 0)
+			enable = int32(len) > 0
+		} else {
+			idx := win.SendMessage(dlg.listCtl, win.LB_GETCURSEL, 0, 0)
+			enable = int32(idx) >= 0
+		}
+		win.EnableWindow(dlg.okBtn, enable)
+	}
+}
+
 func listProc(wnd win.HWND, msg uint32, wparam uintptr, lparam *unsafe.Pointer) uintptr {
 	var dlg *listDialog
 	switch msg {
@@ -180,6 +206,7 @@ func listProc(wnd win.HWND, msg uint32, wparam uintptr, lparam *unsafe.Pointer) 
 	case win.WM_COMMAND:
 		switch wparam {
 		default:
+			dlg.update()
 			return 1
 		case win.IDOK, win.IDYES:
 			if dlg.multiple {

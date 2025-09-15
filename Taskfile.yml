@@ -3,7 +3,7 @@ version: '3'
 env:
   VERSION:
     sh: git describe --tags --always # or: git log -n 1 --format=%h
-  PROJECT_PKG: github.com/fastgh/go-ufs
+  PROJECT_PKG: github.com/qiangyt/go-ufs
 
 includes:
   base: tasks/base.yml
@@ -16,7 +16,7 @@ tasks:
     cmds:
       - go install github.com/golang/mock/mockgen@v1.6.0
       - go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.49.0
-      - go install github.com/dmarkham/enumer@v1.5.6
+      - go install github.com/dmarkham/enumer@1.6.1
       - go install mvdan.cc/gofumpt@v0.4.0
       - go install honnef.co/go/tools/cmd/staticcheck@v0.3.3
 

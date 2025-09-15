@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastgh/go-ufs"
+	"github.com/qiangyt/go-ufs"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )

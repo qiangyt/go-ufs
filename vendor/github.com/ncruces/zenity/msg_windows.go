@@ -7,7 +7,7 @@ import (
 )
 
 func message(kind messageKind, text string, opts options) error {
-	var flags uint32
+	var flags uint32 = win.MB_SETFOREGROUND
 
 	switch {
 	case kind == questionKind && opts.extraButton != nil:
@@ -88,14 +88,14 @@ func hookMessageDialog(opts options) (context.CancelFunc, error) {
 	if opts.okLabel != nil || opts.cancelLabel != nil || opts.extraButton != nil || opts.icon != nil {
 		init = func(wnd win.HWND) {
 			if opts.okLabel != nil {
-				win.SetDlgItemText(wnd, win.IDOK, strptr(*opts.okLabel))
-				win.SetDlgItemText(wnd, win.IDYES, strptr(*opts.okLabel))
+				win.SetDlgItemText(wnd, win.IDOK, strptr(quoteAccelerators(*opts.okLabel)))
+				win.SetDlgItemText(wnd, win.IDYES, strptr(quoteAccelerators(*opts.okLabel)))
 			}
 			if opts.cancelLabel != nil {
-				win.SetDlgItemText(wnd, win.IDCANCEL, strptr(*opts.cancelLabel))
+				win.SetDlgItemText(wnd, win.IDCANCEL, strptr(quoteAccelerators(*opts.cancelLabel)))
 			}
 			if opts.extraButton != nil {
-				win.SetDlgItemText(wnd, win.IDNO, strptr(*opts.extraButton))
+				win.SetDlgItemText(wnd, win.IDNO, strptr(quoteAccelerators(*opts.extraButton)))
 			}
 
 			if icon.handle != 0 {

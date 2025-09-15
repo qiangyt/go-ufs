@@ -6,6 +6,7 @@ package ufs
 // a revised copy of github.com/allan-simon/go-singleinstance v0.0.0-20210120080615-d0997106ab37
 
 import (
+	"os"
 	"strconv"
 
 	"github.com/spf13/afero"
@@ -20,7 +21,7 @@ func CreateLockFile(fs afero.Fs, filename string) (afero.File, error) {
 		if err = fs.Remove(filename); err != nil {
 			return nil, err
 		}
-	} else if !fs.IsNotExist(err) {
+	} else if !os.IsNotExist(err) {
 		return nil, err
 	}
 

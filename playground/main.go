@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/fastgh/go-ufs"
+	"github.com/qiangyt/go-ufs"
 	"github.com/spf13/afero"
 )
 

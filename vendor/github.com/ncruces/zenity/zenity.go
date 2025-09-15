@@ -18,7 +18,7 @@ import (
 	"github.com/ncruces/zenity/internal/zenutil"
 )
 
-func stringPtr(s string) *string { return &s }
+func ptr[T any](v T) *T { return &v }
 
 // ErrCanceled is returned when the cancel button is pressed,
 // or window functions are used to close the dialog.
@@ -29,6 +29,12 @@ const ErrExtraButton = zenutil.ErrExtraButton
 
 // ErrUnsupported is returned when a combination of options is not supported.
 const ErrUnsupported = zenutil.ErrUnsupported
+
+// IsAvailable reports whether dependencies of the package are installed.
+// It always returns true on Windows and macOS.
+func IsAvailable() bool {
+	return isAvailable()
+}
 
 type options struct {
 	// General options
@@ -43,6 +49,9 @@ type options struct {
 	windowIcon    any
 	attach        any
 	modal         bool
+	display       string
+	class         string
+	name          string
 
 	// Message options
 	noWrap    bool
@@ -55,6 +64,7 @@ type options struct {
 
 	// List options
 	listKind      listKind
+	midSearch     bool
 	disallowEmpty bool
 	defaultItems  []string
 
@@ -76,6 +86,7 @@ type options struct {
 	// Progress indication options
 	maxValue      int
 	noCancel      bool
+	autoClose     bool
 	timeRemaining bool
 
 	// Context for timeout
@@ -182,16 +193,37 @@ func WindowIcon(icon any) Option {
 	return funcOption(func(o *options) { o.windowIcon = icon })
 }
 
-// CustomIcon returns an Option to set a custom dialog icon.
+// Attach returns an Option to set the parent window to attach to.
 //
-// Deprecated: use Icon instead.
-func CustomIcon(path string) Option {
-	return Icon(path)
+// Attach accepts:
+//   - a window id (int) on Unix
+//   - a window handle (~uintptr) on Windows
+//   - an application name (string) or process id (int) on macOS
+func Attach(id any) Option {
+	return attach(id)
 }
 
 // Modal returns an Option to set the modal hint.
 func Modal() Option {
 	return funcOption(func(o *options) { o.modal = true })
+}
+
+// Display returns an Option to set the X display to use (Unix only).
+func Display(display string) Option {
+	return funcOption(func(o *options) { o.display = display })
+}
+
+// ClassHint returns an Option to set the program name and class
+// as used by the window manager (Unix only).
+func ClassHint(name, class string) Option {
+	return funcOption(func(o *options) {
+		if name != "" {
+			o.name = name
+		}
+		if class != "" {
+			o.class = class
+		}
+	})
 }
 
 // Context returns an Option to set a Context that can dismiss the dialog.
